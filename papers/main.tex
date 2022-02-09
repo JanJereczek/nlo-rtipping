@@ -1,0 +1,219 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%% Set language and document class %%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper,10pt]{report}
+%\documentclass[11pt,twoside,openright,final]{memoir}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%% Import packages for math environment %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{amsmath}
+\numberwithin{equation}{section}
+
+\usepackage{amssymb}
+\usepackage{xfrac}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% Import packages for rendering and numbering %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Do not number the figures with chapter prefix.
+\usepackage{chngcntr}
+\counterwithout{figure}{chapter}
+
+% Make figure label bold.
+\usepackage[labelfont=bf]{caption}
+
+% Allows to adjust margin of itemize.
+\usepackage{enumitem}
+
+% Allows to resize math character.
+\usepackage{relsize}
+
+% Allows line break in tabulars.
+\usepackage{pbox}
+
+% For caption within minipage.
+\usepackage{caption}    
+
+% Allow backslashed cells in tabular
+
+\usepackage{sectsty}
+
+\newtheorem{theorem}{Theorem}
+
+\usepackage{stackengine}
+\usepackage{subfigure}
+\usepackage{lscape}
+\usepackage{amsfonts}
+\usepackage{gensymb}
+\usepackage{lscape}
+\usepackage{geometry}
+\usepackage{pifont}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{setspace}
+\usepackage{multicol}
+\setstretch{1.15}
+
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{tabulary}
+\usepackage{caption}
+\usepackage{placeins}
+%\usepackage{graphicx}
+\usepackage{grffile}
+\usepackage{color}
+
+\usepackage[hidelinks]{hyperref}
+% \usepackage{ulem}
+
+\usepackage[ruled,vlined]{algorithm2e}  % Allows to write pseudo-code.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% Import and set tikz %%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{pgfplots}
+\DeclareUnicodeCharacter{2212}{−}
+\usepgfplotslibrary{groupplots,dateplot}
+\pgfplotsset{compat=newest}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.misc, patterns, shapes.arrows, matrix}
+\usetikzlibrary{decorations.pathreplacing, fadings}
+\usetikzlibrary{positioning,chains}
+
+\makeatother  % enable grid for easier drawing.
+
+\tikzset{cross/.style={cross out, draw=black, minimum size=2*(#1-\pgflinewidth), inner sep=0pt, outer sep=0pt},cross/.default={1pt}}
+%default radius will be 1pt. 
+
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{extblock} = [rectangle, rounded corners, minimum width=1cm, minimum height=1cm, text centered, draw=black, fill=white!30]
+\tikzstyle{arrow} = [thick, ->, >=stealth]
+\tikzstyle{ourblock} = [rectangle, rounded corners, thick, minimum width=1cm, minimum height=1cm, text centered, draw=Cerulean, fill=white!30]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%% Set page style %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\geometry{lmargin = 27 mm, rmargin = 27mm, bmargin = 30mm, tmargin=30mm}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy} 
+\fancyhf{}
+\fancyhead[L]{ \rightmark }
+\fancyfoot[C]{\thepage}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1em}
+
+
+
+\newcommand\myemptypage{
+    \null
+    \thispagestyle{empty}
+    \addtocounter{page}{-1}
+    \newpage
+    }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%% Content %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\begin{document}
+
+R-Tipping has shown to arise in some nonlinear dynamic system, such as a 5-box model of the AMOC. As this effect has not been studied for ice-sheet models, we proposed to do so on yelmo. However, some unexpected pattern arose: sometimes, for a fixed target value, a lower rate led to tipping whereas a higher one did not. This has not been observed yet and we supposed that it might be due to the second-order nature of the system (AMOC model is first-order). In this case, a frequency dependence can arise, whereas it is impossible for a linear first-order system (for a non-linear it is possible but hard to study and we know that our system is second order because of mechanics, so let's focus on that). 
+
+Studying this on the WAIS is pretty tough, due to the large amount of variables. Therefore we want to find a system of lower complexity that might display such a behavior. For this we design a simple oscillator with two springs and a dampener. We model the fact that one of the springs can break by defining a characteristic curve that displays a constant value $k_{1}$ until it suddenly drops to 0 at $x_{\mathrm{tip}}$. This can be achieved by using a steep logistic function requiring $k_{2} >> 1$. The governing equations can be written as:
+
+\begin{eqnarray}
+m \ddot{x} &=& -\left(c_{1}+c_{2}(x) \right)x - d \dot{x} + mg + F(t) \\
+c_{2}(x) &=& \dfrac{k_{1}}{1 + \mathrm{exp}\left( k_{2} \left( x - x_{\mathrm{tip}}\right) \right) }
+\end{eqnarray}
+
+Rewriting this as a first order model, we obtain:
+
+\begin{eqnarray}
+\dfrac{\mathrm{d}}{\mathrm{d}t} \begin{pmatrix}
+x_{1} \\
+x_{2} 
+\end{pmatrix} = \begin{pmatrix}
+x_{2} \\
+-\dfrac{c_{1}+c_{2}}{m} x_{1} - \dfrac{d}{m} x_{2} + g
+\end{pmatrix}
+\end{eqnarray}
+
+The static force associated with the tipping boundary can be easily computed by:
+
+\begin{eqnarray}
+F_{\mathrm{tip}} = (c_{1} + c_{2}) x_{\mathrm{tip}} - mg
+\end{eqnarray}
+
+Given a force $F$ and depending on whether the spring broke or not, the equilibrium point $\tilde{x}$ is given by:
+
+\begin{eqnarray}
+\tilde{x} = \left\lbrace \begin{array}{l}
+\dfrac{F + mg}{c_{1} + c_{2}}, \quad \text{if system did not tip} \\
+\ \\
+\dfrac{F + mg}{c_{1}} , \quad \text{if system tipped}
+\end{array}  \right.
+\end{eqnarray}
+
+Notice that the system displays the big advantage to be linear on both sides of the transitions, which allow to define a Bode diagramm and thus study the influence of the frequency easily. The system displays a bifurcation diagramm that is similar to the one admitted for the WAIS (fold bifurcation) and essentially has two equilibria (spring alive or dead) corresponding to WAIS alive or dead.
+
+We choose $D$ such that the system is not over-damped. Hence we allow some overshooting in a step response but keep it low to correspond to the AIS (ok, we do not really know here, important assumption made). For the chosen parameters, we also observe the strange tipping pattern on R-grid, wow that's nice!
+
+By making an FFT of the ramps, we observe that the pattern of distance to resonance frequency matches the tipping pattern. Booooom, looks like we are getting close to something!
+
+Now some formulas about this... If we look at the frequency response of our dynamic system, we get this:
+
+\begin{eqnarray}
+D &=& \dfrac{d}{2 \sqrt{mc}} \\
+\alpha(\eta)&=&\frac{1}{\sqrt{\left(1-\eta^{2}\right)^{2}+4 D^{2} \eta^{2}}}
+\end{eqnarray}
+
+It achieves an optimum whenever the term $g(\eta)$ under the square root achieves an optimum itself:
+
+\begin{eqnarray}
+\dfrac{\mathrm{d}g}{\mathrm{d}\eta} = 2 \eta (4  D^{2} - 2 (1-\eta^2))
+\end{eqnarray}
+
+The non-trivial positive solution is:
+
+\begin{eqnarray}
+\eta = \sqrt{1-2 D^2}
+\end{eqnarray}
+
+\begin{eqnarray}
+x_{1}(t=0) = \tilde{x} - \Delta x
+\end{eqnarray}
+
+\begin{eqnarray}
+\mathcal{F}(F(t)) &=& \mathcal{F} \left( F_{\mathrm{max}} R \left( \alpha \left( t-t_{1} \right) \right) - F_{\mathrm{max}} R \left( \alpha \left( t-t_{2} \right) \right) + F_\mathrm{off} u \left( t \right) \right) \\
+&=& \dfrac{F_{\mathrm{max}}}{|\alpha|} ( \mathcal{F} ( R(t-t_{1}))(\dfrac{\omega}{\alpha}) - \mathcal{F}( R(t-t_{2})))(\dfrac{\omega}{\alpha}) + F_\mathrm{off} \mathcal{F}(u \left( t \right))  \\
+&=& \dfrac{F_{\mathrm{max}}}{|\alpha|} \left( \exp
+(- \dfrac{j\omega t_{1}}{\alpha} ) - \exp(- \dfrac{j\omega t_{2}}{\alpha} ) \right) \mathcal{F}(R(t)) + F_\mathrm{off} (\pi \delta(\omega) + \dfrac{1}{j \omega}) \\
+% &=& \dfrac{F_{\mathrm{max}}}{|\alpha|} \left( \exp (- \dfrac{j\omega t_{1}}{\alpha} ) - \exp(- \dfrac{j\omega t_{2}}{\alpha} ) \right) (\dfrac{j \delta ' (\dfrac{\omega}{\alpha})}{4 \pi} - \dfrac{1}{4 \pi^2(\dfrac{\omega}{\alpha})^2 } ) + F_\mathrm{off} (\pi \delta(\omega) + \dfrac{1}{j \omega})
+&=& \dfrac{F_{\mathrm{max}}}{|\alpha|} \left( \exp (- \dfrac{j\omega t_{2}}{\alpha} ) - \exp(- \dfrac{j\omega t_{1}}{\alpha} ) \right) \dfrac{1}{4 \pi^2(\dfrac{\omega}{\alpha})^2 } + F_\mathrm{off} (\pi \delta(\omega) + \dfrac{1}{j \omega})
+\end{eqnarray}
+
+
+\section{EWS}
+
+To produce an EWS of the R-tippig, we build a dense neural network called \textsc{WATER-Net}. Each of its layer is composed by a simple affine transformation and a nonlinear activation:
+
+\begin{eqnarray}
+a_{l+1} = \Phi(W_{l+1} \cdot a_{l} + b_{l+1}), \quad a_{l} \in \mathbb{R}^{n}, \quad W_{l+1} \in \mathbb{R}^{m \times n}, \quad a_{l+1}, \, b_{l+1} \in \mathbb{R}^{m}, \quad l \in \left\lbrace 1, ..., L \right\rbrace
+\end{eqnarray} 
+
+\end{document}

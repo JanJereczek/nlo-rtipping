@@ -1,20 +1,16 @@
 include("mechanics.jl")
 include("forcing.jl")
 
-function xeq1(F)
-    if F < p["F2"]
+function branch_xeq1(F)
+    if F < p["F1"]
         return F / (p["c₁"] + p["k₁"])
     else
         return F / (p["c₁"])
     end
 end
 
-function xeq2(F)
-    if F < p["F1"]
-        return F / (p["c₁"] + p["k₁"])
-    else
-        return F / (p["c₁"])
-    end
+function branch_xeq2(F)
+    return F / (p["c₁"])
 end
 
 function get_c(x1)

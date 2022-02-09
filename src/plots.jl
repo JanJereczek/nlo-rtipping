@@ -17,18 +17,26 @@ function plot_equil_control(p, prefix)
     save_fig(prefix, "control_run", "both", fig)
 end
 
-function plot_characteristics(x₁_vec, c₂, f_vec, amp_resp, prefix)
-    fig = Figure(resolution = (800, 400), fontsize = 14)
+function plot_characteristics(x₁_vec, c₂, f_vec, amp_resp, prefix, mode)
+    fig = Figure(resolution = (1000, 500), fontsize = 14)
+
+    if mode == "ω"
+        freqlabel = "f [rad/s]"
+    else
+        freqlabel = "f [Hz]"
+    end
+
     ax1 = Axis(
         fig[1, 1],
         title = "Characteristic curve of spring n°2",
         xlabel = "x [m]",
         ylabel = "c₂(x) [kg/s²]",
     )
+
     ax2 = Axis(
         fig[1, 2],
         title = "Amplitude response before tipping",
-        xlabel = "f [Hz]",
+        xlabel = freqlabel,
         ylabel = "Amplification [dB]",
         xscale = log10,
         yscale = log10,
@@ -50,8 +58,8 @@ function plot_bifurcation(Fbif, prefix)
         xlabel = "F + mg [N]",
         ylabel = "x [m]",
     )
-    lines!(ax, Fbif, xeq1.(Fbif))
-    lines!(ax, Fbif, xeq2.(Fbif))
+    lines!(ax, Fbif, branch_xeq1.(Fbif))
+    lines!(ax, Fbif, branch_xeq2.(Fbif))
     save_fig(prefix, "bifurcation", "both", fig)
 end
 
@@ -87,10 +95,10 @@ function plot_phaseportrait(X1, X2, prefix)
     save_fig(prefix, "phaseportrait", "both", fig)
 end
 
-function init_grid_axs(fig)
+function init_grid_axs(fig, title_node)
     ax1 = Axis(
         fig[1, 1],
-        title = "End point of trajectory",
+        title = title_node,
         ylabel = "Fₘ [N]",
         xlabel = "a [N/s]",
         xscale = log10,

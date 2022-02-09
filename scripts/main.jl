@@ -124,7 +124,6 @@ if plot_tip_grid_bool | plot_response_bool
         println(a)
         for Fmax in Fvec
 
-            p["F_max"] = Fmax
             p["t₂"] = p["t₁"] + Fmax / a
             append!(Fmax_scat, Fmax)
             append!(a_scat, a)

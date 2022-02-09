@@ -1,4 +1,6 @@
-# nlo-rtipping
+# Case Study: R-Tipping of Nonlinear Oscillator 
+
+## Getting started
 
 This code base is using the Julia Language and [DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
 to make a reproducible scientific project named
@@ -20,3 +22,7 @@ To (locally) reproduce this project, do the following:
 
 This will install all necessary packages for you to be able to run the scripts and
 everything should work out of the box, including correctly finding local paths.
+
+## Read the Docs!
+
+The motivation, experimental setup, results and interpretation is documented under papers/main.pdf

@@ -1,7 +1,7 @@
 include("forcing.jl")
 
 # Create a meshgrid with input vectors x and y.
-function meshgrid(x::Vector{Float64}, y::Vector{Float64})
+function meshgrid(x, y)
     return (repeat(x, outer = length(y)), repeat(y, inner = length(x)))
 end
 
@@ -41,7 +41,14 @@ function ft_step(Fstep::Float64, ω::Any)
 end
 
 # Compute Fourier transform of saturated ramp + step.
-function ft_stepramp(t1::Float64, t2::Float64, Fmax::Float64, Fstep::Float64, a::Any, ω::Any)
+function ft_stepramp(
+    t1::Float64,
+    t2::Float64,
+    Fmax::Float64,
+    Fstep::Float64,
+    a::Any,
+    ω::Any,
+)
     return ft_satramp(t1, t2, Fmax, a, ω) .+ ft_step(Fstep, ω)
 end
 
@@ -57,12 +64,3 @@ function save_fig(prefix, filename, extension, fig)
         save(string(prefix, filename, ".png"), fig)
     end
 end
-
-# function get_spectral_power(get_resp1, fspace1, get_resp2, fspace2)
-#   n1, n2 = length(fspace1), length(fspace2)
-#   if n1 < n2
-#     return get_resp1(fspace2).*get_resp2(fspace2)
-#   else
-#     return get_resp1(fspace1).*get_resp2(fspace1)
-#   end
-# end
