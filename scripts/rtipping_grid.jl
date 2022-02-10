@@ -1,5 +1,5 @@
 # Import packages.
-using DifferentialEquations, CairoMakie, Colors, Interpolations, ProgressMeter, DrWatson;
+using DifferentialEquations, CairoMakie, Colors, Interpolations, ProgressMeter, Statistics, DrWatson;
 
 # Include self-written scripts.
 include(srcdir("forcing.jl"))
@@ -50,7 +50,7 @@ if anim_type == "none"
     Δx = 0.6
 elseif anim_type == "Δx"
     title_func(x) = "x₁(tₑ) for Δx = $x m"
-    Δx_vec = range(0, stop = 1.0, step = 0.1)    # Vector of sampled initial conditions.
+    Δx_vec = range(0, stop = 1.0, step = 0.2)    # Vector of sampled initial conditions.
 elseif anim_type == "D"
     title_func(x) = "x₁(tₑ) for D = $x"
     D_vec = range(0.1, stop = 2, step = 0.1)    # Vector of sampled dampings.
@@ -95,8 +95,8 @@ Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits =
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 
 n_int = 100
-cb_maps = [:rainbow, :viridis]
-cb_limits = [(1.5, 3.1), (1000.0, 2000.0)]
+cb_maps = [:rainbow, :thermal]
+cb_limits = [(1.5, 3.1), (-.75, 1.75)]
 
 node = Observable(0.0)
 title_node = lift(title_func, node)
@@ -109,8 +109,8 @@ sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int, cb_limits, cb_maps
 if anim_type == "none"
     plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
 else
-    Colorbar(grid_fig[1, 2], colormap = cb_maps[1], limits = cb_limits[1])
-    Colorbar(grid_fig[1, 4], colormap = cb_maps[2], limits = cb_limits[2])
+    Colorbar(grid_fig[1, 1][1, 2], colormap = cb_maps[1], limits = cb_limits[1])
+    Colorbar(grid_fig[1, 2][1, 2], colormap = cb_maps[2], limits = cb_limits[2])
     if anim_type == "Δx"
         record(grid_fig, string(prefix_anim, "ICslices.mp4"), Δx_vec; framerate = framerate) do Δx
             node[] = Δx

@@ -10,6 +10,15 @@ function sigmoid(s::Float64, x_inf::Float64, x::Float64)
     1 / (1 + exp(-s * (x - x_inf)))
 end
 
+function normalise(x)
+    # println(mean(x), "    ",var(x))
+    return (x .- mean(x)) ./ sqrt(var(x))
+end
+
+function normalise_ext(x, μ, σ2)
+    return (x .- μ) ./ sqrt(σ2)
+end
+
 # Convert angular frequency to frequency.
 function ω2f(ω::Any)
     return ω ./ (2 * π)

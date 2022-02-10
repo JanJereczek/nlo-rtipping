@@ -4,10 +4,10 @@
 
 # Folders to ignore - files may be too large, too many, etc. NOTE: EDIT IF NEEDED.
 data
-videos
 plots
 notebooks
 _research
+old_code
 
 ################################################################################
 #                                    Julia                                     #
@@ -78,6 +78,7 @@ Backup of *.doc*
 *.cb
 *.cb2
 .*.lb
+*.tex
 
 ## Intermediate documents:
 *.dvi
