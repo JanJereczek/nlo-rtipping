@@ -5,6 +5,10 @@ function get_nl_stiffness(x₁)
     return p["k₁"] / (1 + exp(p["k₂"] * (x₁ - p["xₜ"])))
 end
 
+function get_ω₀(c)
+    return sqrt( c/p["m"] )
+end
+
 # Compute damping degree D.
 function get_D(p)
     return p["d"] / (2 * sqrt(p["m"] * (p["c₁"] + p["k₁"])))
@@ -16,14 +20,16 @@ function D2d(D, p)
 end
 
 # Compute Bode diagram of nlo.
-function get_bode_amp(η)
+function get_bode_amp(ω)
+    η = ω ./ p["ω₀1"]
     D = get_D(p)
     return (sqrt((1 - η^2)^2 + 4 * D^2 * η^2))^(-1)
 end
 
 # Compute resonance frequency for given parameter set.
 function get_resonance_freq(p)
-    ω_res = sqrt(1 - 2 * get_D(p) .^ 2)
+    η_res = sqrt(1 - 2 * get_D(p) .^ 2)
+    ω_res = η_res * p["ω₀1"]
     return ω_res
 end
 

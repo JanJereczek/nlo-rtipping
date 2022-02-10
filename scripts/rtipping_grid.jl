@@ -14,15 +14,15 @@ include(srcdir("video_helper.jl"))
 p = load_parameters()
 
 # Define plotting options.
-plot_characteristics_bool = true
-plot_bifurcation_bool = true
-plot_stream_bool = true
+plot_characteristics_bool = false
+plot_bifurcation_bool = false
+plot_stream_bool = false
 plot_tip_grid_bool = false
 plot_response_bool = false
 
 # Decide whether animation should be created or not.
 anim_types = ["none", "Δx", "D", "σ"]   # Choose between slicing (or not) over IC, damping degree or noise variance.
-anim_type = anim_types[1]
+anim_type = anim_types[2]
 framerate = 10                          # [frame/second]
 
 # Define saving options.
@@ -47,9 +47,10 @@ end
 
 if anim_type == "none"
     title_func(x) = "x₁(tₑ)"
+    Δx = 0.6
 elseif anim_type == "Δx"
     title_func(x) = "x₁(tₑ) for Δx = $x m"
-    Δx_vec = range(0, stop = 1.0, step = 0.02)    # Vector of sampled initial conditions.
+    Δx_vec = range(0, stop = 1.0, step = 0.1)    # Vector of sampled initial conditions.
 elseif anim_type == "D"
     title_func(x) = "x₁(tₑ) for D = $x"
     D_vec = range(0.1, stop = 2, step = 0.1)    # Vector of sampled dampings.
@@ -95,7 +96,7 @@ avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 
 n_int = 100
 cb_maps = [:rainbow, :viridis]
-cb_limits = [(1.5, 3.1), (50.0, 100.0)]
+cb_limits = [(1.5, 3.1), (1000.0, 2000.0)]
 
 node = Observable(0.0)
 title_node = lift(title_func, node)
@@ -105,10 +106,25 @@ grid_fig = Figure(resolution = (1600, 800), fontsize = 18)
 grid_axs = init_grid_axs(grid_fig, title_node)
 sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int, cb_limits, cb_maps)
 
-Colorbar(grid_fig[1, 2], colormap = cb_maps[1], limits = cb_limits[1])
-Colorbar(grid_fig[1, 4], colormap = cb_maps[2], limits = cb_limits[2])
-
-# record(grid_fig, string(prefix, "ICslices.mp4"), Δx_vec; framerate = framerate) do Δx
-#     init_pert[] = Δx
-#     plot_scatter(get_scatter(Δx, sss), sss, grid_axs, grid_fig, Δx)
-# end
+if anim_type == "none"
+    plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
+else
+    Colorbar(grid_fig[1, 2], colormap = cb_maps[1], limits = cb_limits[1])
+    Colorbar(grid_fig[1, 4], colormap = cb_maps[2], limits = cb_limits[2])
+    if anim_type == "Δx"
+        record(grid_fig, string(prefix_anim, "ICslices.mp4"), Δx_vec; framerate = framerate) do Δx
+            node[] = Δx
+            plot_scatter_fixedcb(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
+        end
+    elseif anim_type == "D"
+        record(grid_fig, string(prefix_anim, "ICslices.mp4"), D_vec; framerate = framerate) do D
+            node[] = D
+            plot_scatter_fixedcb(get_scatter(D, anim_type, sss), sss, grid_axs, grid_fig, D, prefix_anim)
+        end
+    elseif anim_type == "σ"
+        record(grid_fig, string(prefix_anim, "ICslices.mp4"), σ_vec; framerate = framerate) do σ
+            node[] = σ
+            plot_scatter_fixedcb(get_scatter(σ, anim_type, sss), sss, grid_axs, grid_fig, σ, prefix_anim)
+        end
+    end
+end

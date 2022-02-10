@@ -25,4 +25,4 @@ everything should work out of the box, including correctly finding local paths.
 
 ## Read the Docs!
 
-The motivation, experimental setup, results and interpretation is documented under papers/main.pdf
+The motivation, experimental setup, results and interpretation is documented in the `papers/` directory. 

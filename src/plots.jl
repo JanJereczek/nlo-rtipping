@@ -97,14 +97,14 @@ end
 
 function init_grid_axs(fig, title_node)
     ax1 = Axis(
-        fig[1, 1],
+        fig[1, 1][1, 1],
         title = title_node,
         ylabel = "Fₘ [N]",
         xlabel = "a [N/s]",
         xscale = log10,
     )
     ax2 = Axis(
-        fig[1, 3],
+        fig[1, 2][1, 1],
         title = "Spectral amplitude at resonance frequency",
         ylabel = "Fₘ [N]",
         xlabel = "a [N/s]",
