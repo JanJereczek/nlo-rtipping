@@ -71,8 +71,8 @@ function get_scatter(node, anim_type, sss)
             # tf_res = nlo_transfer1(p, x₀, sss.ω_res[2] )
             # append!(resfreq_scat, abs.(tf_res))
 
-            tf_res = nlo_transfer1(p, x₀, range(sss.ω_res[1], stop = sss.ω_res[3], length=1000) )
-            append!(resfreq_scat, sum(abs.(tf_res)))
+            G₁_res, G₂_res, U_res, Y_res = nlo_transfer1(p, x₀, range(sss.ω_res[1], stop = sss.ω_res[3], length=1000) )
+            append!(resfreq_scat, sum(abs.(Y_res)))
             # append!(resfreq_scat, sum(abs.(log10.(tf_res))))
         end
     end
@@ -80,7 +80,8 @@ function get_scatter(node, anim_type, sss)
 end
 
 function plot_scatter_fixedcb(x, sss, grid_axs, grid_fig, node, prefix_anim)
-    x[3] = normalise(x[3])
+    # x[3] = normalise(x[3])
+    println( extrema(x[3]) )
 
     scatter!(
         grid_axs[1],

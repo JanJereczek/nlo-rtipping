@@ -23,7 +23,7 @@ plot_response_bool = false
 # Decide whether animation should be created or not.
 anim_types = ["none", "Δx", "D", "σ"]   # Choose between slicing (or not) over IC, damping degree or noise variance.
 anim_type = anim_types[2]
-framerate = 10                          # [frame/second]
+framerate = 2                          # [frame/second]
 
 # Define saving options.
 prefixes = [plotsdir("tmp/"), plotsdir()]
@@ -46,24 +46,24 @@ else
 end
 
 if anim_type == "none"
-    title_func(x) = "x₁(tₑ)"
-    Δx = 0.6
+    title_func(x) = ""
+    Δx = 0.0
 elseif anim_type == "Δx"
-    title_func(x) = "x₁(tₑ) for Δx = $x m"
-    Δx_vec = range(0, stop = 1.0, step = 0.2)    # Vector of sampled initial conditions.
+    title_func(x) = "Δx = $x m"
+    Δx_vec = range(0, stop = 1.0, step = 0.1)    # Vector of sampled initial conditions.
 elseif anim_type == "D"
-    title_func(x) = "x₁(tₑ) for D = $x"
+    title_func(x) = "D = $x"
     D_vec = range(0.1, stop = 2, step = 0.1)    # Vector of sampled dampings.
     d_vec = D2d(D_vec)
 elseif anim_type == "σ"
-    title_func(x) = "x₁(tₑ) for σ = $x N"
+    title_func(x) = "σ = $x N"
     σ_vec = range(0.0, stop = 1.0, step = 0.05)
 end
 
 
 ω_vec = 10 .^ (range(-3.0, stop = 2.0, length = 1001))
 res_threshold = 1.1
-get_ω_ampresp, get_f_ampresp, amp_resp, ω_res, f_res =
+get_ω_ampresp, get_f_ampresp, amp_ω_resp, ω_res, f_res =
     get_resonance_characteristics(p, ω_vec, res_threshold)
 
 # Plot the characteristics
@@ -71,7 +71,7 @@ if plot_characteristics_bool
     # Get characteristics of spring n°2.
     x₁_vec = range(0.0, stop = 2.0, length = 1000)
     c₂ = get_nl_stiffness.(x₁_vec)
-    plot_characteristics(x₁_vec, c₂, ω_vec, amp_resp, prefix, "ω")
+    plot_characteristics(x₁_vec, c₂, ω_vec, amp_ω_resp, prefix, "ω")
 end
 
 # Get system bifurcation.
@@ -96,7 +96,7 @@ avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 
 n_int = 100
 cb_maps = [:rainbow, :thermal]
-cb_limits = [(1.5, 3.1), (-.75, 1.75)]
+cb_limits = [(1.4, 3.1), (415, 680)]
 
 node = Observable(0.0)
 title_node = lift(title_func, node)
@@ -108,21 +108,23 @@ sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int, cb_limits, cb_maps
 
 if anim_type == "none"
     plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
+    plot_bode(p, Δx, sss, prefix)
 else
-    Colorbar(grid_fig[1, 1][1, 2], colormap = cb_maps[1], limits = cb_limits[1])
-    Colorbar(grid_fig[1, 2][1, 2], colormap = cb_maps[2], limits = cb_limits[2])
+    Colorbar(grid_fig[1, 1][1, 2], colormap = cb_maps[1], limits = cb_limits[1], label = "x₁(t_end) [m]")
+    Colorbar(grid_fig[1, 2][1, 2], colormap = cb_maps[2], limits = cb_limits[2], label = "|Y(ω_res)|")
     if anim_type == "Δx"
-        record(grid_fig, string(prefix_anim, "ICslices.mp4"), Δx_vec; framerate = framerate) do Δx
+        record(grid_fig, string(prefix_anim, "slices.mp4"), Δx_vec; framerate = framerate) do Δx
             node[] = Δx
+            plot_bode(p, Δx, sss, prefix)
             plot_scatter_fixedcb(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
         end
     elseif anim_type == "D"
-        record(grid_fig, string(prefix_anim, "ICslices.mp4"), D_vec; framerate = framerate) do D
+        record(grid_fig, string(prefix_anim, "slices.mp4"), D_vec; framerate = framerate) do D
             node[] = D
             plot_scatter_fixedcb(get_scatter(D, anim_type, sss), sss, grid_axs, grid_fig, D, prefix_anim)
         end
     elseif anim_type == "σ"
-        record(grid_fig, string(prefix_anim, "ICslices.mp4"), σ_vec; framerate = framerate) do σ
+        record(grid_fig, string(prefix_anim, "slices.mp4"), σ_vec; framerate = framerate) do σ
             node[] = σ
             plot_scatter_fixedcb(get_scatter(σ, anim_type, sss), sss, grid_axs, grid_fig, σ, prefix_anim)
         end

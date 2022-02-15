@@ -148,3 +148,49 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     lines!(axs[4], sol[1, :], sol[2, :], label = line_label)
     # ylims!(axs[2])
 end
+
+function plot_bode(p, Δx, sss, prefix)
+    x₁_t₀ = p["xeq1"] - Δx
+    x₀ = [x₁_t₀, 0.0]
+
+    G₁, G₂, U, Y = nlo_transfer1(p, x₀, sss.ω_vec)
+
+    fig = Figure(resolution = (1000, 800))
+    ax1 = Axis(
+        fig[1, 1],
+        xlabel = "ω [rad/s]",
+        ylabel = "Magnitude [dB]",
+        xscale = log10,
+        yscale = log10,
+        xminorticks = IntervalsBetween(9),
+        xminorticksvisible = true,
+        xminorgridvisible = true,
+    )
+    ax2 = Axis(
+        fig[2, 1],
+        xlabel = "ω [rad/s]",
+        ylabel = "Phase [rad]",
+        xscale = log10,
+        xminorticks = IntervalsBetween(9),
+        xminorticksvisible = true,
+        xminorgridvisible = true,
+    )
+
+    tf_vec = [G₁, G₂, (G₁ .+ (G₂ ./ U)), U, Y]
+    label_vec = ["G₁(jω)", "G₂(jω)", "G(jω)", "U(jω)", "Y(jω)"]
+
+    for i = 1:length(tf_vec)
+        lines!(ax1, sss.ω_vec, abs.(tf_vec[i]), label = label_vec[i])
+        lines!(ax2, sss.ω_vec, angle.(tf_vec[i]) )
+    end
+
+    vlines!(ax1, [p["ω₀1"]], color = :red)
+    vlines!(ax2, [p["ω₀1"]], color = :red)
+    xlims!(ax1, (5e-2, 1e1))
+    xlims!(ax2, (5e-2, 1e1))
+    ylims!(ax1, (1e-3, 1e3))
+
+    axislegend(ax1, merge = true, nbanks = 2, position = :rt)
+    save_fig(prefix, "Bodeplot_Δx=$Δx", "both", fig)
+    return fig
+end

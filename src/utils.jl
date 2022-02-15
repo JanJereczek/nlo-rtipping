@@ -39,9 +39,8 @@ end
 # Compute Fourier transform of saturated ramp with parameters t1, t2, Fmax, a.
 # Output image of input ω.
 function ft_satramp(t1::Float64, t2::Float64, Fmax::Float64, a::Any, ω::Any)
-    k = ω ./ a
-    return (Fmax ./ abs.(a)) ./ (4 .* π^2 .* k .^ 2) .*
-           (exp.(-im .* k .* t2) - exp.(-im .* k .* t1))
+    s = im .* ω
+    return a ./ s.^2 .* (exp.(-t1 .* s) .- exp.(-t2 .* s))
 end
 
 # Compute Fourier transform of step with amplitude Fstep.
@@ -73,3 +72,11 @@ function save_fig(prefix, filename, extension, fig)
         save(string(prefix, filename, ".png"), fig)
     end
 end
+
+
+
+# function ft_satramp(t1::Float64, t2::Float64, Fmax::Float64, a::Any, ω::Any)
+#     k = ω ./ a
+#     return (Fmax  ./ abs.(a)) ./ (k .^ 2) .*
+#            (exp.(-im .* k .* t2) - exp.(-im .* k .* t1))
+# end

@@ -22,8 +22,13 @@ end
 # Compute Bode diagram of nlo.
 function get_bode_amp(ω)
     η = ω ./ p["ω₀1"]
-    D = get_D(p)
-    return (sqrt((1 - η^2)^2 + 4 * D^2 * η^2))^(-1)
+    c = p["c₁"] + p["k₁"]
+    return 1/ ( c * ( sqrt((1 - η^2)^2 + 4 * p["D"]^2 * η^2) ) )
+end
+
+function get_bode_phase(ω)
+    η = ω ./ p["ω₀1"]
+    return  atan( 2*p["D"]*η, 1 - η^2  )
 end
 
 # Compute resonance frequency for given parameter set.
@@ -35,19 +40,19 @@ end
 
 # Compute characteristics of resonance
 function get_resonance_characteristics(p::Dict, ω_vec::Vector, res_threshold::Float64)
-    amp_resp = get_bode_amp.(ω_vec)
-    get_ω_ampresp = LinearInterpolation(ω_vec, amp_resp)        # Create linear interpolations
-    get_f_ampresp = LinearInterpolation(ω2f(ω_vec), amp_resp)
+    amp_ω_resp = get_bode_amp.(ω_vec)
+    get_ω_ampresp = LinearInterpolation(ω_vec, amp_ω_resp)        # Create linear interpolations
+    get_f_ampresp = LinearInterpolation(ω2f(ω_vec), amp_ω_resp)
 
     ω_res = round.(get_resonance_freq(p); digits = 3)           # Obtained by deriving bode
-    ix_res = argmax(amp_resp)                                   # Index corresponding to resonance
+    ix_res = argmax(amp_ω_resp)                                   # Index corresponding to resonance
     ω_res_num = ω_vec[ix_res]                                   # Corresponding numerical estimation
     dω = ω_vec[ix_res+1] - ω_vec[ix_res]                        # Frequency stepping
     test_msg = "Analytical and numerical computation of resonance frequency coincide? "
     println(test_msg, isapprox(ω_res, ω_res_num; atol = 1 * dω))
 
     # Get lower and upper limits of resonance region
-    ωres_vec = ω_vec[amp_resp.>res_threshold]
+    ωres_vec = ω_vec[ amp_ω_resp .> (res_threshold*amp_ω_resp[1]) ]
     ω1_res, ω2_res = round(ωres_vec[1]; digits = 3), round(ωres_vec[end]; digits = 3)
 
     # Zip characteristics
@@ -64,5 +69,5 @@ function get_resonance_characteristics(p::Dict, ω_vec::Vector, res_threshold::F
         f_res_char[3],
     )
 
-    return get_ω_ampresp, get_f_ampresp, amp_resp, ω_res_char, f_res_char
+    return get_ω_ampresp, get_f_ampresp, amp_ω_resp, ω_res_char, f_res_char
 end
