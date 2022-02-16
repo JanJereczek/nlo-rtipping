@@ -7,7 +7,7 @@ function load_parameters()
     p["c₁"] = 50.0        # [kg/s²] stiffness of linear spring.
     p["d"] = 20.0         # [kg/s] dampening factor. Criteria for non-oscillating behavior: d > 2*sqrt(m*c)
     p["k₁"] = 50.0        # [kg/s²] max stiffness of non-linear spring.
-    p["k₂"] = 1e3         # [1] steepness param of sigmoid.
+    p["k₂"] = 1e6         # [1] steepness param of sigmoid.
     p["xₜ"] = 1.5         # [m] tipping displacement.
     p["t₁"] = 0.0         # [s] time at which the ramp begins.
     p["g"] = 10.0         # [m/s²] earth acceleration constant. (simplified number to have round thresholds).

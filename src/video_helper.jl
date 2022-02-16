@@ -17,8 +17,7 @@ function get_scatter(node, anim_type, sss)
         Δx = node
     end
 
-    x₁_t₀ = p["xeq1"] - Δx
-    x₀ = [x₁_t₀, 0.0]
+    x₀ = get_x₀(p, Δx)
     println("Getting results for x₀ = $x₀")
 
     for a in sss.avec
@@ -36,42 +35,14 @@ function get_scatter(node, anim_type, sss)
             local sol = solve_nlo(x₀, tspan, p)
             append!(x_scat, last(sol)[1])
 
-            Fstep = -get_c(x₁_t₀) * Δx
-            ft_F = ft_stepramp(p["t₁"], p["t₂"], Fmax, Fstep, a, sss.ω_vec)
+            Fstep = get_c(x₀[1]) * Δx
+            ft_F = ft_stepramp(p["t₁"], p["t₂"], Fstep, a, sss.ω_vec)
 
             get_ft_F = LinearInterpolation(sss.ω_vec, abs.(ft_F))
-            # append!(resfreq_scat, get_ft_F(ω_res[2]) )
-            # ωres_sample = range(sss.ω_res[1], stop = sss.ω_res[3], length = sss.n_int)
-            # ωreq_product = get_ft_F.(ωres_sample) .* get_ω_ampresp.(ωres_sample)
-            # A_ω_res_integrated = sum(ωreq_product) / sss.n_int
-
-            # ωreq_product = get_ft_F.(sss.ω_vec) .* get_ω_ampresp.(sss.ω_vec)
-            # A_ω_res_integrated = sum(ωreq_product) / length(sss.ω_vec)
-
-
-            #tf = nlo_transfer1(p, x₀, sss.ω_vec)
-            #append!(resfreq_scat, maximum(abs.(tf)))
-
-            # fig = Figure(resolution = (1000, 500))
-            # ax = Axis(
-            #     fig[1, 1],
-            #     xlabel = "ω [rad/s]",
-            #     ylabel = "|Y(jw)|",
-            #     xscale = log10,
-            #     yscale = log10,
-            #     xminorticks = IntervalsBetween(9),
-            #     xminorticksvisible = true,
-            #     xminorgridvisible = true,
-            # )
-            # lines!(ax, sss.ω_vec, abs.(tf))
-            # xlims!(ax, (1e-3, 1e3))
-            # ylims!(ax, (1e-3, 1e3))
-            # save_fig("plots/", "hash=$(randn(1)[1])", "png", fig)
-
-            # tf_res = nlo_transfer1(p, x₀, sss.ω_res[2] )
-            # append!(resfreq_scat, abs.(tf_res))
-
-            G₁_res, G₂_res, U_res, Y_res = nlo_transfer1(p, x₀, range(sss.ω_res[1], stop = sss.ω_res[3], length=1000) )
+            ω_res = range(sss.ω_res[1], stop = sss.ω_res[3], length=1000)
+            G₁_res, G₂_res = nlo_transfer(p, x₀, ω_res, 1)
+            U_res = get_ft_F(ω_res)
+            Y_res = get_Y(G₁_res, G₂_res, U_res)
             append!(resfreq_scat, sum(abs.(Y_res)))
             # append!(resfreq_scat, sum(abs.(log10.(tf_res))))
         end
@@ -81,7 +52,7 @@ end
 
 function plot_scatter_fixedcb(x, sss, grid_axs, grid_fig, node, prefix_anim)
     # x[3] = normalise(x[3])
-    println( extrema(x[3]) )
+    # println( extrema(x[3]) )
 
     scatter!(
         grid_axs[1],

@@ -22,7 +22,7 @@ plot_response_bool = false
 
 # Decide whether animation should be created or not.
 anim_types = ["none", "Δx", "D", "σ"]   # Choose between slicing (or not) over IC, damping degree or noise variance.
-anim_type = anim_types[2]
+anim_type = anim_types[1]
 framerate = 2                          # [frame/second]
 
 # Define saving options.
@@ -47,7 +47,7 @@ end
 
 if anim_type == "none"
     title_func(x) = ""
-    Δx = 0.0
+    Δx = 0.6
 elseif anim_type == "Δx"
     title_func(x) = "Δx = $x m"
     Δx_vec = range(0, stop = 1.0, step = 0.1)    # Vector of sampled initial conditions.
@@ -89,10 +89,23 @@ if plot_stream_bool
     plot_phaseportrait(X1, X2, prefix)
 end
 
+# Get the tranform of the seperating control trajectory.
+p["Fmax"] = 0.95*p["F_crit"]
+Δx_lim = - ( p["Fmax"] ) / get_c(p["xeq1"])
+
+region = 1
+tf_lim = Dict()
+# tf_lim["x₀"] = get_x₀(p, Δx_lim)
+# tf_lim["U"] = ft_step( p["Fmax"] + p["m"]*p["g"] , ω_vec)
+# tf_lim["G₁"], tf_lim["G₂"] = nlo_transfer(p, tf_lim["x₀"], ω_vec, region)
+# tf_lim["Y"] = get_Y(tf_lim["G₁"], tf_lim["G₂"], tf_lim["U"])
+tf_lim["Ystat"] = tf_lim["x₀"][1] ./ (im * ω_vec)
+# fig_lim = plot_bode(p, ω_vec, string(prefix, "lim_"), tf_lim)
+
 # Sampled values of the tipping grid.
 F_llim, F_ulim = -15, 2     # linscale with ref = F_crit
-Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
-avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
+Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 2)
+avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 2)
 
 n_int = 100
 cb_maps = [:rainbow, :thermal]
@@ -106,16 +119,34 @@ grid_fig = Figure(resolution = (1600, 800), fontsize = 18)
 grid_axs = init_grid_axs(grid_fig, title_node)
 sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int, cb_limits, cb_maps)
 
+function get_bode_a(a, p, Δx, Fvec, ω_vec)
+    tf = Dict()
+    tf["x₀"] = get_x₀(p, Δx)
+    p_temp = p
+    j = 28
+    j = 32
+    p_temp["Fmax"], p_temp["aF"], p_temp["t₂"] = Fvec[j], a, Fvec[j] / a
+
+    tf["U"] = ft_stepramp(p_temp["t₁"], p_temp["t₂"], p_temp["m"]*p_temp["g"], p_temp["aF"], ω_vec)
+    tf["G₁"], tf["G₂"] = nlo_transfer(p_temp, tf["x₀"], ω_vec, region)
+    tf["Y"] = get_Y(tf["G₁"], tf["G₂"], tf["U"])
+    tf["Ystat"] = tf_lim["Ystat"]
+    println("a=", round(a; digits=2), ":  ", sum(abs.(tf["Y"]) .> abs.(tf_lim["Ystat"])))
+    plot_bode(p, ω_vec, string(prefix, "a=", a), tf)
+end
+
 if anim_type == "none"
-    plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
-    plot_bode(p, Δx, sss, prefix)
+    # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
+    for i in 30:40
+        get_bode_a(avec[i], p, Δx, Fvec, ω_vec)
+    end
 else
     Colorbar(grid_fig[1, 1][1, 2], colormap = cb_maps[1], limits = cb_limits[1], label = "x₁(t_end) [m]")
     Colorbar(grid_fig[1, 2][1, 2], colormap = cb_maps[2], limits = cb_limits[2], label = "|Y(ω_res)|")
     if anim_type == "Δx"
         record(grid_fig, string(prefix_anim, "slices.mp4"), Δx_vec; framerate = framerate) do Δx
             node[] = Δx
-            plot_bode(p, Δx, sss, prefix)
+            plot_bode(p, Δx, ω_vec, prefix)
             plot_scatter_fixedcb(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
         end
     elseif anim_type == "D"

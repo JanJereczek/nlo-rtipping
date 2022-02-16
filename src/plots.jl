@@ -149,12 +149,9 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     # ylims!(axs[2])
 end
 
-function plot_bode(p, Δx, sss, prefix)
-    x₁_t₀ = p["xeq1"] - Δx
-    x₀ = [x₁_t₀, 0.0]
+function plot_bode(p::Dict, ω_vec::Vector, prefix::String, tf::Dict)
 
-    G₁, G₂, U, Y = nlo_transfer1(p, x₀, sss.ω_vec)
-
+    G₁, G₂, U, Y, Ystat = tf["G₁"], tf["G₂"], tf["U"], tf["Y"], tf["Ystat"]
     fig = Figure(resolution = (1000, 800))
     ax1 = Axis(
         fig[1, 1],
@@ -162,6 +159,7 @@ function plot_bode(p, Δx, sss, prefix)
         ylabel = "Magnitude [dB]",
         xscale = log10,
         yscale = log10,
+        xticks =  10 .^ range(-2., 1., step=1),
         xminorticks = IntervalsBetween(9),
         xminorticksvisible = true,
         xminorgridvisible = true,
@@ -171,24 +169,26 @@ function plot_bode(p, Δx, sss, prefix)
         xlabel = "ω [rad/s]",
         ylabel = "Phase [rad]",
         xscale = log10,
+        xticks =  10 .^ range(-2., 1., step=1),
         xminorticks = IntervalsBetween(9),
         xminorticksvisible = true,
         xminorgridvisible = true,
     )
+    xlims!(ax1, (5e-2, 1e1))
+    xlims!(ax2, (5e-2, 1e1))
 
-    tf_vec = [G₁, G₂, (G₁ .+ (G₂ ./ U)), U, Y]
-    label_vec = ["G₁(jω)", "G₂(jω)", "G(jω)", "U(jω)", "Y(jω)"]
+    tf_vec = [G₁, G₂, (Y ./ U), U, Y, Ystat]
+    label_vec = ["G₁", "G₂", "G", "U", "Y", "Ystat"]
 
     for i = 1:length(tf_vec)
-        lines!(ax1, sss.ω_vec, abs.(tf_vec[i]), label = label_vec[i])
-        lines!(ax2, sss.ω_vec, angle.(tf_vec[i]) )
+        lines!(ax1, ω_vec, abs.(tf_vec[i]), label = label_vec[i])
+        lines!(ax2, ω_vec, angle.(tf_vec[i]) )
     end
 
     vlines!(ax1, [p["ω₀1"]], color = :red)
     vlines!(ax2, [p["ω₀1"]], color = :red)
-    xlims!(ax1, (5e-2, 1e1))
-    xlims!(ax2, (5e-2, 1e1))
     ylims!(ax1, (1e-3, 1e3))
+    ylims!(ax2, (-4, .5))
 
     axislegend(ax1, merge = true, nbanks = 2, position = :rt)
     save_fig(prefix, "Bodeplot_Δx=$Δx", "both", fig)

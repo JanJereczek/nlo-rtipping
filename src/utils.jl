@@ -29,6 +29,10 @@ function f2ω(f::Any)
     return (2 * π) .* f
 end
 
+function get_x₀(p, Δx)
+    return [p["xeq1"] - Δx, 0.0]
+end
+
 ##############################################################################
 ############################ Fourier Transforms ##############################
 ##############################################################################
@@ -38,7 +42,7 @@ end
 
 # Compute Fourier transform of saturated ramp with parameters t1, t2, Fmax, a.
 # Output image of input ω.
-function ft_satramp(t1::Float64, t2::Float64, Fmax::Float64, a::Any, ω::Any)
+function ft_satramp(t1::Float64, t2::Float64, a::Any, ω::Any)
     s = im .* ω
     return a ./ s.^2 .* (exp.(-t1 .* s) .- exp.(-t2 .* s))
 end
@@ -52,12 +56,11 @@ end
 function ft_stepramp(
     t1::Float64,
     t2::Float64,
-    Fmax::Float64,
     Fstep::Float64,
     a::Any,
     ω::Any,
 )
-    return ft_satramp(t1, t2, Fmax, a, ω) .+ ft_step(Fstep, ω)
+    return ft_satramp(t1, t2, a, ω) .+ ft_step(Fstep, ω)
 end
 
 function get_spectral_power(get_resp1, fspace1, get_resp2)
