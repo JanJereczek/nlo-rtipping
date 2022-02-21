@@ -1,5 +1,10 @@
 include("forcing.jl")
 
+# Return the indices associated to box constraint.
+function get_box_indices(v, lb, ub)
+    return (v .> lb) .& (v .< ub)
+end
+
 # Create a meshgrid with input vectors x and y.
 function meshgrid(x, y)
     return (repeat(x, outer = length(y)), repeat(y, inner = length(x)))

@@ -28,7 +28,12 @@ framerate = 2                          # [frame/second]
 # Define saving options.
 prefixes = [plotsdir("tmp/"), plotsdir()]
 prefix = prefixes[1]
-prefix_anim = string(prefix, "animations/", anim_type)
+
+if anim_type == "none"
+    prefix_anim = string(prefix, "Δx")
+else
+    prefix_anim = string(prefix, "animations/", anim_type)
+end
 
 # Control run time.
 nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
@@ -61,7 +66,7 @@ elseif anim_type == "σ"
 end
 
 
-ω_vec = 10 .^ (range(-3.0, stop = 2.0, length = 1001))
+ω_vec = 10 .^ (range(-4, stop = 4, length = 8001))
 res_threshold = 1.1
 get_ω_ampresp, get_f_ampresp, amp_ω_resp, ω_res, f_res =
     get_resonance_characteristics(p, ω_vec, res_threshold)
@@ -90,26 +95,28 @@ if plot_stream_bool
 end
 
 # Get the tranform of the seperating control trajectory.
+region = 1
 p["Fmax"] = 0.95*p["F_crit"]
 Δx_lim = - ( p["Fmax"] ) / get_c(p["xeq1"])
-
-region = 1
 tf_lim = Dict()
-# tf_lim["x₀"] = get_x₀(p, Δx_lim)
+p["x₀_lim"] = get_x₀(p, Δx_lim)[1]
+p["Ystat"] = get_Y_stat(p["x₀_lim"], ω_vec)
+
 # tf_lim["U"] = ft_step( p["Fmax"] + p["m"]*p["g"] , ω_vec)
-# tf_lim["G₁"], tf_lim["G₂"] = nlo_transfer(p, tf_lim["x₀"], ω_vec, region)
-# tf_lim["Y"] = get_Y(tf_lim["G₁"], tf_lim["G₂"], tf_lim["U"])
-tf_lim["Ystat"] = tf_lim["x₀"][1] ./ (im * ω_vec)
+# tf_lim["G"], tf_lim["Y₀"] = nlo_transfer(p, tf_lim["x₀"], ω_vec, region)
+# tf_lim["Y"] = get_Y(tf_lim["G"], tf_lim["Y₀"], tf_lim["U"])
 # fig_lim = plot_bode(p, ω_vec, string(prefix, "lim_"), tf_lim)
 
 # Sampled values of the tipping grid.
 F_llim, F_ulim = -15, 2     # linscale with ref = F_crit
-Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 2)
-avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 2)
+Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
+avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 
 n_int = 100
-cb_maps = [:rainbow, :thermal]
-cb_limits = [(1.4, 3.1), (415, 680)]
+cb_maps = [:rainbow, :vik]
+# cb_maps = [:rainbow, :thermal]
+# cb_limits = [(1.4, 3.1), (415, 680)]
+cb_limits = [(1.4, 3.1), (-0.2, 0.2)]
 
 node = Observable(0.0)
 title_node = lift(title_func, node)
@@ -128,18 +135,19 @@ function get_bode_a(a, p, Δx, Fvec, ω_vec)
     p_temp["Fmax"], p_temp["aF"], p_temp["t₂"] = Fvec[j], a, Fvec[j] / a
 
     tf["U"] = ft_stepramp(p_temp["t₁"], p_temp["t₂"], p_temp["m"]*p_temp["g"], p_temp["aF"], ω_vec)
-    tf["G₁"], tf["G₂"] = nlo_transfer(p_temp, tf["x₀"], ω_vec, region)
-    tf["Y"] = get_Y(tf["G₁"], tf["G₂"], tf["U"])
-    tf["Ystat"] = tf_lim["Ystat"]
+    tf["G"], tf["Y₀"] = nlo_transfer(p_temp, tf["x₀"], ω_vec, region)
+    tf["Y"] = get_Y(tf["G"], tf["Y₀"], tf["U"])
+    tf["Ystat"] = p["Ystat"]
     println("a=", round(a; digits=2), ":  ", sum(abs.(tf["Y"]) .> abs.(tf_lim["Ystat"])))
     plot_bode(p, ω_vec, string(prefix, "a=", a), tf)
 end
 
 if anim_type == "none"
+    plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
     # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
-    for i in 30:40
-        get_bode_a(avec[i], p, Δx, Fvec, ω_vec)
-    end
+    # for i in 30:40
+    #     get_bode_a(avec[i], p, Δx, Fvec, ω_vec)
+    # end
 else
     Colorbar(grid_fig[1, 1][1, 2], colormap = cb_maps[1], limits = cb_limits[1], label = "x₁(t_end) [m]")
     Colorbar(grid_fig[1, 2][1, 2], colormap = cb_maps[2], limits = cb_limits[2], label = "|Y(ω_res)|")

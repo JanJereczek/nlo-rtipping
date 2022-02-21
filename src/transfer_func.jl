@@ -11,14 +11,18 @@ function nlo_transfer(p::Dict, x₀::Vector, ω::Any, region::Int)
 
     K = 1 / p["m"]
     denum = s .^ 2 .+ 2*p["D"]*p["ω₀1"] .* s .+ p["ω₀1"]^2
-    G₁ = K ./ denum
+    G = K ./ denum
 
     num_ic = x₀[1] .* s .+ x₀[2] .+ 2*p["D"]*p["ω₀1"] * x₀[1]
-    G₂ = num_ic ./ denum
-    return G₁, G₂
+    Y₀ = num_ic ./ denum
+    return G, Y₀
 end
 
 
-function get_Y(G₁, G₂, U)
-    return G₁ .* U .+ G₂
+function get_Y(G, Y₀, U)
+    return G .* U .+ Y₀
+end
+
+function get_Y_stat(x₀, ω)
+    return x₀ ./ (im * ω)
 end

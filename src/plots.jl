@@ -151,7 +151,7 @@ end
 
 function plot_bode(p::Dict, ω_vec::Vector, prefix::String, tf::Dict)
 
-    G₁, G₂, U, Y, Ystat = tf["G₁"], tf["G₂"], tf["U"], tf["Y"], tf["Ystat"]
+    G, Y₀, U, Y, Ystat = tf["G"], tf["Y₀"], tf["U"], tf["Y"], tf["Ystat"]
     fig = Figure(resolution = (1000, 800))
     ax1 = Axis(
         fig[1, 1],
@@ -177,8 +177,8 @@ function plot_bode(p::Dict, ω_vec::Vector, prefix::String, tf::Dict)
     xlims!(ax1, (5e-2, 1e1))
     xlims!(ax2, (5e-2, 1e1))
 
-    tf_vec = [G₁, G₂, (Y ./ U), U, Y, Ystat]
-    label_vec = ["G₁", "G₂", "G", "U", "Y", "Ystat"]
+    tf_vec = [G, Y₀, (Y ./ U), U, Y, Ystat]
+    label_vec = ["G", "Y₀", "G", "U", "Y", "Ystat"]
 
     for i = 1:length(tf_vec)
         lines!(ax1, ω_vec, abs.(tf_vec[i]), label = label_vec[i])
