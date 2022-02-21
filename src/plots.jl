@@ -199,8 +199,8 @@ function plot_bode(p::Dict, ω_vec::Vector, prefix::String, tf::Dict)
     xlims!(ax1, (5e-2, 1e1))
     xlims!(ax2, (5e-2, 1e1))
 
-    tf_vec = [G, Y₀, (Y ./ U), U, Y, Ystat]
-    label_vec = ["G", "Y₀", "G", "U", "Y", "Ystat"]
+    tf_vec = [G, Y₀, U, Y, Ystat]
+    label_vec = ["G", "Y₀", "U", "Y", "Ystat"]
 
     for i = 1:length(tf_vec)
         lines!(ax1, ω_vec, abs.(tf_vec[i]), label = label_vec[i])

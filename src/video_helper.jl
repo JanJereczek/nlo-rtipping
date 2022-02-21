@@ -6,7 +6,7 @@ mutable struct SlicedScatterStructs
     ω_vec::Vector{Float64}
     ω_res::Vector{Float64}
     n_int::Int64
-    cb_limits::Vector{Tuple{Float64,Real}}
+    cb_limits::Vector{Any}
     cb_maps::Vector{Symbol}
 end
 
@@ -62,10 +62,11 @@ function get_scatter(node, anim_type, sss)
 
             ΔY = ( Yabs - Ystatabs ) ./ Ystatabs
             γ₁ = sum( abs.(Y_res) )
+            # γ₁ = sum( abs.(Y_t₂) )
             γ₂ = sum( ΔY[ΔY .> 0] )
             γ₃ = maximum(ΔY)
-            γ₄ = 1/(2*π) * sum( Yabs.^2 - Ystatabs.^2 )
-            γ₅ = 1/(2*π) * sum( abs.(Y_t₂).^2 - abs.(Ystatabs[ix_ω_t₂]).^2 )
+            γ₄ = 1/(2*π) * sum( Yabs.^2 - Ystatabs.^2 ) / length(ω_vec)
+            γ₅ = 1/(2*π) * sum( abs.(Y_t₂).^2 - abs.(Ystatabs[ix_ω_t₂]).^2 ) / length(ix_ω_t₂)
 
             append!(γ₁_scat, γ₁)
             append!(γ₂_scat, γ₂)
@@ -109,15 +110,23 @@ function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
     save_fig(prefix_anim, "=$node", "both", grid_fig)
 end
 
-function large_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb, nrows, ncols)
+function large_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, nrows, ncols)
     Fmax, a, x_end, γ = x
     for i in 1:nrows
         for j in 1:ncols
             k = (i-1)*ncols + j
             if k == nrows*ncols     # plot time-integrated tipping grid.
-                hm = scatter!(grid_axs[string(k)], a, Fmax, color = x_end, colormap = sss.cb_maps[k])
+                if sss.cb_limits[k] == "none"
+                    hm = scatter!(grid_axs[string(k)], a, Fmax, color = x_end, colormap = sss.cb_maps[k])
+                else
+                    hm = scatter!(grid_axs[string(k)], a, Fmax, color = x_end, colormap = sss.cb_maps[k], colorrange=sss.cb_limits[k])
+                end
             else                    # plot the measures.
-                hm = scatter!(grid_axs[string(k)], a, Fmax, color = γ[string(k)], colormap = sss.cb_maps[k])
+                if sss.cb_limits[k] == "none"
+                    hm = scatter!(grid_axs[string(k)], a, Fmax, color = γ[string(k)], colormap = sss.cb_maps[k])
+                else
+                    hm = scatter!(grid_axs[string(k)], a, Fmax, color = γ[string(k)], colormap = sss.cb_maps[k], colorrange=sss.cb_limits[k])
+                end
             end
             Colorbar(grid_fig[i, j][1, 2], hm)
         end

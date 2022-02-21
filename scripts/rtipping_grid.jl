@@ -113,11 +113,8 @@ Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits =
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 
 n_int = 100
-# cb_maps = [:rainbow, :vik]
 cb_maps = [:rainbow, :rainbow, :rainbow, :rainbow, :rainbow, :rainbow]
-# cb_maps = [:rainbow, :thermal]
-# cb_limits = [(1.4, 3.1), (415, 680)]
-cb_limits = [(1.4, 3.1), (-0.2, 0.2)]
+cb_limits = ["none", (0, 1), (-0.1, 0.1), "none", "none", "none"]
 
 node = Observable(0.0)
 title_node = lift(title_func, node)
@@ -143,14 +140,13 @@ function get_bode_a(a, p, Δx, Fvec, ω_vec)
     tf["G"], tf["Y₀"] = nlo_transfer(p_temp, tf["x₀"], ω_vec, region)
     tf["Y"] = get_Y(tf["G"], tf["Y₀"], tf["U"])
     tf["Ystat"] = p["Ystat"]
-    println("a=", round(a; digits=2), ":  ", sum(abs.(tf["Y"]) .> abs.(tf_lim["Ystat"])))
+    println("a=", round(a; digits=2), ":  ", sum(abs.(tf["Y"]) .> abs.(tf["Ystat"])))
     plot_bode(p, ω_vec, string(prefix, "a=", a), tf)
 end
 
 if anim_type == "none"
-    large_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb", nrows, ncols)
+    large_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, nrows, ncols)
     # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
-    # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
     # for i in 30:40
     #     get_bode_a(avec[i], p, Δx, Fvec, ω_vec)
     # end
