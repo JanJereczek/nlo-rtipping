@@ -113,7 +113,8 @@ Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits =
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 
 n_int = 100
-cb_maps = [:rainbow, :vik]
+# cb_maps = [:rainbow, :vik]
+cb_maps = [:rainbow, :rainbow, :rainbow, :rainbow, :rainbow, :rainbow]
 # cb_maps = [:rainbow, :thermal]
 # cb_limits = [(1.4, 3.1), (415, 680)]
 cb_limits = [(1.4, 3.1), (-0.2, 0.2)]
@@ -122,8 +123,12 @@ node = Observable(0.0)
 title_node = lift(title_func, node)
 
 # Initialise figure of tipping grid.
-grid_fig = Figure(resolution = (1600, 800), fontsize = 18)
-grid_axs = init_grid_axs(grid_fig, title_node)
+grid_fig = Figure(resolution = (1500, 1000), fontsize = 18)
+# grid_axs = init_grid_axs(grid_fig, title_node)
+
+nrows = 2
+ncols = 3
+grid_axs = init_large_grid_axs(grid_fig, title_node, nrows, ncols)
 sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int, cb_limits, cb_maps)
 
 function get_bode_a(a, p, Δx, Fvec, ω_vec)
@@ -143,7 +148,8 @@ function get_bode_a(a, p, Δx, Fvec, ω_vec)
 end
 
 if anim_type == "none"
-    plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
+    large_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb", nrows, ncols)
+    # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
     # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
     # for i in 30:40
     #     get_bode_a(avec[i], p, Δx, Fvec, ω_vec)

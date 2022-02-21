@@ -115,6 +115,28 @@ function init_grid_axs(fig, title_node)
     return axs
 end
 
+function init_large_grid_axs(fig, title_node, nrows, ncols)
+    axs = Dict()
+    for i in 1:nrows
+        for j in 1:ncols
+            k = (i-1)*ncols + j
+            if k == nrows*ncols     # init time-integrated tipping grid.
+                ax = Axis(
+                    fig[i,j][1, 1],
+                    title = title_node,
+                    xlabel = "a [N/s]",
+                    ylabel = "Fₘ [N]",
+                    xscale = log10,
+                )
+            else                    # init the measure plots.
+                ax = Axis(fig[i,j][1,1], title=string("γ", k), xlabel = "a [N/s]", ylabel = "Fₘ [N]", xscale = log10)
+            end
+            axs[string(k)] = ax
+        end
+    end
+    return axs
+end
+
 function init_response_axs(fig, f1, f2)
     ax1 = Axis(fig[1, 1], xlabel = "Time [s]", ylabel = "F(t) [N]")
     ax2 = Axis(

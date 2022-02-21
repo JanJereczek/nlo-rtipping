@@ -11,7 +11,7 @@ mutable struct SlicedScatterStructs
 end
 
 function get_scatter(node, anim_type, sss)
-    Fmax_scat, a_scat, resfreq_scat, x_scat = zeros(0), zeros(0), zeros(0)
+    Fmax_scat, a_scat, x_scat = zeros(0), zeros(0), zeros(0)
     γ₁_scat, γ₂_scat, γ₃_scat, γ₄_scat, γ₅_scat = zeros(0), zeros(0), zeros(0), zeros(0), zeros(0)
 
     if (anim_type == "Δx") | (anim_type == "none")
@@ -65,7 +65,7 @@ function get_scatter(node, anim_type, sss)
             γ₂ = sum( ΔY[ΔY .> 0] )
             γ₃ = maximum(ΔY)
             γ₄ = 1/(2*π) * sum( Yabs.^2 - Ystatabs.^2 )
-            γ₅ = 1/(2*π) * sum( abs.(Y_t₂).^2 - Ystatabs.^2 )
+            γ₅ = 1/(2*π) * sum( abs.(Y_t₂).^2 - abs.(Ystatabs[ix_ω_t₂]).^2 )
 
             append!(γ₁_scat, γ₁)
             append!(γ₂_scat, γ₂)
@@ -74,20 +74,20 @@ function get_scatter(node, anim_type, sss)
             append!(γ₅_scat, γ₅)
         end
     end
-    return [Fmax_scat, a_scat, resfreq_scat, x_scat]
+    γ_scat = Dict()
+    γ_scat["1"], γ_scat["2"], γ_scat["3"] = γ₁_scat, γ₂_scat, γ₃_scat
+    γ_scat["4"], γ_scat["5"] = γ₄_scat, γ₅_scat
+    return [Fmax_scat, a_scat, x_scat, γ_scat]
 end
 
 function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
-    # println(sum(x[3]), sum(x[4]))
-    # dist2mean = normalise(x[3])
-    # x[3]
 
     if cb == "fixed_cb"
         hm1 = scatter!(
             grid_axs[1],
             x[2],
             x[1],
-            color = x[4],
+            color = x[3],
             colormap = sss.cb_maps[1],
             colorrange = sss.cb_limits[1],
         )
@@ -95,7 +95,7 @@ function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
             grid_axs[2],
             x[2],
             x[1],
-            color = x[3],
+            color = x[4]["1"],              # Only plot γ₁ (or any other γ you wish)
             colormap = sss.cb_maps[2],
             colorrange = sss.cb_limits[2],
         )
@@ -108,3 +108,39 @@ function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
     Colorbar(grid_fig[1, 2][1, 2], hm2)
     save_fig(prefix_anim, "=$node", "both", grid_fig)
 end
+
+function large_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb, nrows, ncols)
+    Fmax, a, x_end, γ = x
+    for i in 1:nrows
+        for j in 1:ncols
+            k = (i-1)*ncols + j
+            if k == nrows*ncols     # plot time-integrated tipping grid.
+                hm = scatter!(grid_axs[string(k)], a, Fmax, color = x_end, colormap = sss.cb_maps[k])
+            else                    # plot the measures.
+                hm = scatter!(grid_axs[string(k)], a, Fmax, color = γ[string(k)], colormap = sss.cb_maps[k])
+            end
+            Colorbar(grid_fig[i, j][1, 2], hm)
+        end
+    end
+    save_fig(prefix_anim, "=$node", "both", grid_fig)
+end
+
+# if cb == "fixed_cb"
+#     hm1 = scatter!(
+#         grid_axs[1],
+#         x[2],
+#         x[1],
+#         color = x[3],
+#         colormap = sss.cb_maps[1],
+#         colorrange = sss.cb_limits[1],
+#     )
+
+#     hm2 = scatter!(
+#         grid_axs[2],
+#         x[2],
+#         x[1],
+#         color = x[3],
+#         colormap = sss.cb_maps[2],
+#         colorrange = sss.cb_limits[2],
+#     )
+# end

@@ -25,4 +25,5 @@ everything should work out of the box, including correctly finding local paths.
 
 ## Read the Docs!
 
-The motivation, experimental setup, results and interpretation is documented in `docs/NLO_Rtipping.pdf`. 
+The motivation, experimental setup, results and interpretation is documented in `docs/NLO_Rtipping.pdf`.
+The derivation of the tipping measures is described in `docs/main.pdf`. Notice that this is still work under progress. 
