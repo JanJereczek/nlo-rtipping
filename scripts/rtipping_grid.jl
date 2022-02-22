@@ -128,24 +128,46 @@ ncols = 3
 grid_axs = init_large_grid_axs(grid_fig, title_node, nrows, ncols)
 sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int, cb_limits, cb_maps)
 
-function get_bode_a(a, p, Δx, Fvec, ω_vec)
-    tf = Dict()
-    tf["x₀"] = get_x₀(p, Δx)
-    p_temp = p
-    j = 28
-    j = 32
-    p_temp["Fmax"], p_temp["aF"], p_temp["t₂"] = Fvec[j], a, Fvec[j] / a
+resp_fig = Figure(resolution = (2000, 500))
+ia = 31
+Fmax = Fvec[ isapprox.(Fvec, 45; atol=1e-1) ][1]
+x₀ = get_x₀(p, Δx)
+tend = 10
+tspan = (0, tend)
+t = range(tspan[1], stop=tspan[2], step=0.1)
 
-    tf["U"] = ft_stepramp(p_temp["t₁"], p_temp["t₂"], p_temp["m"]*p_temp["g"], p_temp["aF"], ω_vec)
-    tf["G"], tf["Y₀"] = nlo_transfer(p_temp, tf["x₀"], ω_vec, region)
-    tf["Y"] = get_Y(tf["G"], tf["Y₀"], tf["U"])
-    tf["Ystat"] = p["Ystat"]
-    println("a=", round(a; digits=2), ":  ", sum(abs.(tf["Y"]) .> abs.(tf["Ystat"])))
-    plot_bode(p, ω_vec, string(prefix, "a=", a), tf)
+for i in 1:6
+    p["aF"] = avec[ ia+i ]
+    p["Fmax"] = Fmax
+    p["t₂"] = p["t₁"] + p["Fmax"] / p["aF"]
+    local sol = solve_nlo(x₀, tspan, p)
+
+    local solF_ = solve_nlo_F([0., 0.], tspan, p)
+    local solF = solF_(t)
+
+    p["aF"] = 0
+    local soly0_ = solve_nlo(x₀, tspan, p)
+    local soly0 = soly0_(t)
+
+    local ax1 = Axis(resp_fig[1, i])
+    y = reduce(vcat, transpose.(sol.u)) # .- transpose(x₀)
+    yF = reduce(vcat, transpose.(solF.u)) # .- transpose(x₀)
+    yy0 = reduce(vcat, transpose.(soly0.u)) # .- transpose(x₀)
+    ycheck = yF .+ yy0
+    lines!(ax1, sol.t, y[:, 1], label="y(t)")
+    lines!(ax1, solF.t, yF[:, 1], label="yF(t)")
+    lines!(ax1, soly0.t, yy0[:, 1], label="yIC(t)")
+    lines!(ax1, t, ycheck[:, 1], label="yF(t) + yIC(t)")
+    ylims!(ax1, (0, 1.6))
+    axislegend(ax1, merge = true, nbanks = 2, position = :rb)
+    hlines!(ax1, [p["xₜ"]], color = :red)
 end
+save_fig(prefix, "superposition", "both", resp_fig)
+
+
 
 if anim_type == "none"
-    large_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, nrows, ncols)
+    # large_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, nrows, ncols)
     # plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
     # for i in 30:40
     #     get_bode_a(avec[i], p, Δx, Fvec, ω_vec)
