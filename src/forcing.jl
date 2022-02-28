@@ -10,7 +10,7 @@ function get_F(t)
         F = p["aF"] * (p["t₂"] - p["t₁"])
     end
 
-    if p["F_type"] == "noisy"
+    if p["F_noise"]
         F += p["σ"] * randn(1)[1]
     end
     return F

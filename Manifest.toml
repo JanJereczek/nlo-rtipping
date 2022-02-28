@@ -691,6 +691,12 @@ git-tree-sha1 = "3696fdc1d3ef6e4d19551c92626066702a5db91c"
 uuid = "2ee39098-c373-598a-b85f-a56591580800"
 version = "1.7.1"
 
+[[deps.Latexify]]
+deps = ["Formatting", "InteractiveUtils", "LaTeXStrings", "MacroTools", "Markdown", "Printf", "Requires"]
+git-tree-sha1 = "a6552bfeab40de157a297d84e03ade4b8177677f"
+uuid = "23fbe1c1-3f47-55db-b15f-69d7ec21a316"
+version = "0.15.12"
+
 [[deps.LayoutPointers]]
 deps = ["ArrayInterface", "LinearAlgebra", "ManualMemory", "SIMDTypes", "Static"]
 git-tree-sha1 = "6dd77ee76188b0365f7d882d674b95796076fa2c"

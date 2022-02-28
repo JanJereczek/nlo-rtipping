@@ -42,9 +42,9 @@ function nl_osc_free(x)
     return [x[2], -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + p["g"]]
 end
 
-function nl_osc_free_stream(x1, x2)
-    c = get_c(x1)
-    return Point(x2, -c / p["m"] * x1 - p["d"] / p["m"] * x2 + p["g"])
+function nl_osc_free_stream(x)
+    c = get_c(x[1])
+    return Point2f(x[2], -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + p["g"])
 end
 
 # function get_sol(v₀, tspan, p)
@@ -55,7 +55,7 @@ end
 
 function solve_nlo(x₀, tspan, p)
     ivp = ODEProblem(nl_oscillator!, x₀, tspan, p)
-    if p["F_type"] == "noisy"
+    if p["F_noise"]
         return solve(ivp, dt = p["dt"], adaptive = false)
     else
         return solve(ivp, dense=true)

@@ -15,6 +15,7 @@ function load_parameters()
     p["ω₀1"] = get_ω₀( p["c₁"] + p["k₁"] )
     p["ω₀2"] = get_ω₀( p["c₁"] )
     p["D"] = get_D(p)
+    p["ωd"] = p["ω₀1"] * sqrt( 1 - p["D"]^2 )
     p["xeq1"] = p["m"] * p["g"] / (p["c₁"] + p["k₁"])
     p["xeq2"] = p["m"] * p["g"] / p["c₁"]
     

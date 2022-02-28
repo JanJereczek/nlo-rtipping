@@ -14,8 +14,11 @@ function get_scatter(node, anim_type, sss)
     Fmax_scat, a_scat, x_scat = zeros(0), zeros(0), zeros(0)
     γ₁_scat, γ₂_scat, γ₃_scat, γ₄_scat, γ₅_scat = zeros(0), zeros(0), zeros(0), zeros(0), zeros(0)
 
-    if (anim_type == "Δx") | (anim_type == "none")
+    if (anim_type == "Δx") | (anim_type == "none") | (anim_type == "grid4")
         Δx = node
+    elseif anim_type == "σ"
+        p["σ"] = node
+        Δx = 0.6
     end
 
     x₀ = get_x₀(p, Δx)
