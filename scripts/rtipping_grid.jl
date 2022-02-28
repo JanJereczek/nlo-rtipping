@@ -1,5 +1,5 @@
 # Import packages.
-using DifferentialEquations, CairoMakie, Colors, Interpolations, ProgressMeter, Statistics, DrWatson;
+using DifferentialEquations, CairoMakie, Colors, Interpolations, Statistics, DrWatson, NLsolve;
 
 # Include self-written scripts.
 include(srcdir("forcing.jl"))
@@ -21,9 +21,9 @@ plot_tip_grid_bool = true
 plot_superposition_bool = false
 
 # Decide whether animation should be created or not.
-anim_types = ["none", "grid4", "Δx", "D", "σ"]   # Choose between slicing (or not) over IC, damping degree or noise variance.
+anim_types = ["none", "grid4", "Δx", "D", "σ"]      # Choose between slicing (or not) over IC, damping degree or noise variance.
 anim_type = anim_types[2]
-framerate = 2                          # [frame/second]
+framerate = 2                                       # [frame/second]
 
 # Define saving options.
 prefixes = [plotsdir("tmp/"), plotsdir()]

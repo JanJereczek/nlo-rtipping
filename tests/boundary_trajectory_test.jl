@@ -7,7 +7,12 @@ w0 = p["ω₀1"]
 D = p["D"]
 wd = p["ωd"]
 xₜ = p["xₜ"]
-xmg = 1.0
+p["F_type"] = "const"
+p["F_noise"] = true
+p["σ"] = 0
+p["dt"] = 0.01
+p["F_const"] = 48
+xmg = (p["m"] * p["g"] + p["F_const"]) / (p["c₁"] + p["k₁"])
 A = xₜ - xmg
 
 x₁(A, B, t) = exp(-D*w0*t) * ( A*cos(wd*t) + B*sin(wd*t) ) + xmg
@@ -23,17 +28,12 @@ initial_x = [2.0]
 @time sol_nl = mcpsolve(f!, [1.0], [5.0], initial_x, reformulation = :smooth)
 
 t_tip = sol_nl.zero[1]
-# t_tip = 0.87
 B = fB(t_tip)
 println("B, t_tip = ", [B, t_tip])
 
 x₀ = [x₁(A, B, 0), x₂(A, B, 0)]
 println("Residual: ", [x₁(A, B, t_tip) - xₜ, x₂(A, B, t_tip)] )
-p["F_type"] = "const"
-p["F_const"] = 0
-p["F_noise"] = true
-p["σ"] = 0
-p["dt"] = 0.01
+
 sol = solve_nlo(x₀, (0, 5), p)
 fig = Figure()
 ax = Axis(fig[1,1])
