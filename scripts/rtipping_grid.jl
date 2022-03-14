@@ -15,13 +15,13 @@ include(srcdir("ews.jl"))
 p = load_parameters()
 
 # Define plotting options.
-plot_characteristics_bool = true
-plot_bifportrait_bool = true
+plot_characteristics_bool = false
+plot_bifportrait_bool = false
+plot_superposition_bool = false
 plot_tip_grid_bool = true
-plot_superposition_bool = true
 
 # Decide whether animation should be created or not.
-plot_types = ["none", "Δx", "D", "σ"]      # Choose between slicing (or not) over IC, damping degree or noise variance.
+plot_types = ["single", "Δx", "D", "σ"]      # Choose between slicing (or not) over IC, damping degree or noise variance.
 plot_type = plot_types[2]
 framerate = 2                                       # [frame/second]
 
@@ -29,15 +29,11 @@ framerate = 2                                       # [frame/second]
 prefixes = [plotsdir("tmp/"), plotsdir()]
 prefix = prefixes[1]
 
-if plot_type == "none"
+if plot_type == "single"
     prefix_anim = string(prefix, "Δx")
 else
     prefix_anim = string(prefix, "animations/", plot_type)
 end
-
-# Control run time.
-nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
-a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
 
 # Choose applied noise.
 if plot_type == "σ"
@@ -50,9 +46,7 @@ else
     p["fixed_dt"] = false
 end
 
-Δx = 0.6
-p["F_type"] = "ramp"
-if (plot_type == "none") | (plot_type == "grid4")
+if plot_type == "single"
     title_func(x) = ""
 elseif plot_type == "Δx"
     title_func(x) = "Δx = $x m"
@@ -61,15 +55,16 @@ elseif plot_type == "Δx"
     # In case we want to generate an animation:
     gen_anim = false
     Δx_vec_anim = range(0, stop = 1.0, step = 0.1)    # Vector of sampled initial conditions.
-    
+
 elseif plot_type == "D"
     title_func(x) = "D = $x"
-    D_vec = range(0.1, stop = 2, step = 0.1)    # Vector of sampled dampings.
-    d_vec = D2d(D_vec)
+    D_vec = [0.5, 1.5]    # Vector of sampled dampings.
+    d_vec = D2d(D_vec, p)
 elseif plot_type == "σ"
     title_func(x) = "σ = $x N"
     σ_vec = [0.25, 0.5]
 end
+p["F_type"] = "ramp"
 
 # If D > 1 the equation has a singularity.
 if p["D"] < 1
@@ -95,13 +90,13 @@ if plot_bifportrait_bool
 end
 
 # Sampled values of the tipping grid.
-F_llim, F_ulim = -15, 2     # linscale with ref = F_crit
+nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
+a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
+Δx = 0.6                                # Standard value if Δx not changed over looping.-
+F_llim, F_ulim = -15, 2                 # linscale with ref = F_crit
 Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
-n_int = 100
-node = Observable(0.0)
-title_node = lift(title_func, node)
-sss = SlicedScatterStructs(avec, Fvec, ω_vec, ω_res, n_int)
+sss = SlicedScatterStructs(avec, Fvec)
 
 # Plot the superposed solutions.
 if plot_superposition_bool
@@ -112,10 +107,10 @@ if plot_tip_grid_bool
 
     # Initialise axis and dictionary for tipping grid.
     grid_fig = Figure(resolution = (1500, 1000), fontsize = 18)
-    grid_axs = init_grid_axs(grid_fig, title_node)
+    grid_axs = init_grid_axs(grid_fig)
     grid_dict = Dict()
 
-    if plot_type == "none"
+    if plot_type == "single"
         plot_scatter(get_scatter(Δx, plot_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
     else
         if plot_type == "Δx"
@@ -126,15 +121,14 @@ if plot_tip_grid_bool
 
             if gen_anim
                 record(grid_fig, string(prefix_anim, "slices.mp4"), Δx_vec; framerate = framerate) do Δx
-                    node[] = Δx
                     plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
                 end
             end
         elseif plot_type == "D"
-            for D in D_vec
-                grid_dict[string(D)] = get_scatter(D, plot_type, sss)
+            for d in d_vec
+                grid_dict[string(d)] = get_scatter(d, plot_type, sss)
             end
-            plot_grid2(grid_dict, D_vec, prefix)
+            plot_grid2(grid_dict, d_vec, prefix)
         elseif plot_type == "σ"
             for σ in σ_vec
                 grid_dict[string(σ)] = get_scatter(σ, plot_type, sss)

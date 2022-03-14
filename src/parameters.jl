@@ -22,7 +22,5 @@ function load_parameters()
     p["F_crit"] = (p["c₁"] + p["k₁"]) * p["xₜ"] - p["m"] * p["g"]   # [N] external force leading to tipping at equilibrium.
     p["F_const"] = p["F_crit"] - 1e-1                               # [N] external force at a point right before tipping for control run.
     p["F1"] = (p["c₁"] + p["k₁"]) * p["xₜ"]                         # [N] total force leading to tipping at equilibrium.
-
-
     return p
 end

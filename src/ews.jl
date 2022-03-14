@@ -5,7 +5,11 @@ function get_bassin_boundary(p, Fconst)
     D = p["D"]
     xₜ = p["xₜ"]
 
-    # Define the constant forcing
+    # Store original options.
+    fixed_dt_bool = p["fixed_dt"]   # store original option.
+    F_type = p["F_type"]
+
+    # Temporarily change them to compute basin boundary.
     p["fixed_dt"] = true
     p["F_type"] = "const"
     p["F_const"] = Fconst
@@ -33,4 +37,8 @@ function get_bassin_boundary(p, Fconst)
     # Get the trajectory on bassin boundary.
     x₀ = [x₁(A, B, 0), x₂(A, B, 0)]
     return solve_nlo(x₀, (0, t_tip), p)
+
+    # Turn original options back on.
+    p["fixed_dt"] = fixed_dt_bool
+    p["F_type"] = F_type
 end

@@ -74,7 +74,7 @@ function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
     save_fig(prefix, "bif_phaseportrait", "both", fig)
 end
 
-function init_grid_axs_1(fig)
+function init_grid_axs(fig)
     ax = Axis(
         fig[1, 1][1, 1],
         ylabel = L"$F_{\max}$ [N]",
@@ -82,28 +82,6 @@ function init_grid_axs_1(fig)
         xscale = log10,
     )
     return ax
-end
-
-function init_large_grid_axs(fig, title_node, nrows, ncols)
-    axs = Dict()
-    for i in 1:nrows
-        for j in 1:ncols
-            k = (i-1)*ncols + j
-            if k == nrows*ncols     # init time-integrated tipping grid.
-                ax = Axis(
-                    fig[i,j][1, 1],
-                    title = title_node,
-                    xlabel = "a [N/s]",
-                    ylabel = "Fₘ [N]",
-                    xscale = log10,
-                )
-            else                    # init the measure plots.
-                ax = Axis(fig[i,j][1,1], title=string("γ", k), xlabel = "a [N/s]", ylabel = "Fₘ [N]", xscale = log10)
-            end
-            axs[string(k)] = ax
-        end
-    end
-    return axs
 end
 
 function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
@@ -148,7 +126,7 @@ function plot_grid4(scatter_dict, Δx_vec, prefix)
             x = scatter_dict[string(Δx)]
             ax = Axis(
                 fig[i,j][1,1], 
-                title = L"$\Delta x =$ %$(string(Δx)) m", 
+                title = L"$\Delta x_{1} =$ %$(string(Δx)) m", 
                 xlabel = L"$a$ [N/s]",
                 # xlabel = (i == 1 ? L"$\hat{t}$ [s]" : L"$a$ [N/s]"),
                 ylabel = L"$F_{\max}$ [N]",

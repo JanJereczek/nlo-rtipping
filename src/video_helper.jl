@@ -3,18 +3,18 @@ include("utils.jl")
 mutable struct SlicedScatterStructs
     avec::Vector{Float64}
     Fvec::Vector{Float64}
-    ω_vec::Vector{Float64}
-    ω_res::Vector{Float64}
-    n_int::Int64
 end
 
-function get_scatter(node, anim_type, sss)
+function get_scatter(node, plot_type, sss)
     Fmax_scat, a_scat, x_scat = zeros(0), zeros(0), zeros(0)
 
-    if (anim_type == "Δx") | (anim_type == "none") | (anim_type == "grid4")
+    if (plot_type == "Δx") | (plot_type == "single")
         Δx = node
-    elseif anim_type == "σ"
+    elseif plot_type == "σ"
         p["σ"] = node
+        Δx = 0.6
+    elseif plot_type == "D"
+        p["d"] = node
         Δx = 0.6
     end
 

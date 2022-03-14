@@ -47,12 +47,6 @@ function nl_osc_free_stream(x)
     return Point2f(x[2], -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + p["g"])
 end
 
-# function get_sol(v₀, tspan, p)
-#   local x₀ = [0.0, v₀]      # Set an initial speed for the system to move towards tipping.
-#   local ivp = ODEProblem(nl_oscillator!, x₀, tspan, p)
-#   return solve(ivp)
-# end
-
 function solve_nlo(x₀, tspan, p)
     ivp = ODEProblem(nl_oscillator!, x₀, tspan, p)
     if p["fixed_dt"]
