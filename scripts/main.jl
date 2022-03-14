@@ -21,7 +21,7 @@ plot_superposition_bool = false
 plot_tip_grid_bool = true
 
 # Decide whether animation should be created or not.
-plot_types = ["single", "Δx", "D", "σ"]      # Choose between slicing (or not) over IC, damping degree or noise variance.
+plot_types = ["single", "Δx", "D", "σ"]             # Choose between slicing (or not) over IC, damping degree or noise variance.
 plot_type = plot_types[2]
 framerate = 2                                       # [frame/second]
 
