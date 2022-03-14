@@ -49,70 +49,8 @@ function plot_characteristics(x₁_vec, c₂, f_vec, amp_resp, prefix, mode)
     save_fig(prefix, "characteristics", "both", fig)
 end
 
-function plot_bifurcation(Fbif, prefix)
-    fig = Figure(resolution = (500, 500), fontsize = 20)
-    ax = Axis(
-        fig[1, 1],
-        xlabel = L"$\tilde{F} + mg$ [N]",
-        ylabel = L"$\tilde{x}$ [m]",
-    )
-    lines!(ax, Fbif, branch_xeq1.(Fbif), label = L"$\tilde{x}_{-}$ [m]")
-    lines!(ax, Fbif, branch_xeq2.(Fbif), label = L"$\tilde{x}_{+}$ [m]")
-    axislegend(ax, merge = true, nbanks = 2, position = :lt)
-    save_fig(prefix, "bifurcation", "both", fig)
-end
-
-# function plot_phaseportrait(X1, X2, prefix)
-#     X = cat(vec(X1), vec(X2), dims = 2)
-#     fig = Figure(resolution = (1000, 500), fontsize = 20)
-#     ax1 = Axis(fig[1, 1], title = "Vector field", xlabel = "x₁ [m]", ylabel = "x₂ [m/s]")
-#     ax2 = Axis(fig[1, 2], title = "Phase portrait", xlabel = "x₁ [m]", ylabel = "x₂ [m/s]")
-
-#     dX = mapslices(nl_osc_free, X; dims = 2)
-#     mag = vec(sqrt.(dX[:, 1] .^ 2 .+ dX[:, 2] .^ 2))
-
-#     arrows!(
-#         ax1,
-#         X1,
-#         X2,
-#         dX[:, 1],
-#         dX[:, 2],
-#         arrowsize = 3,
-#         lengthscale = 0.05,
-#         arrowcolor = mag,
-#         linecolor = mag,
-#     )
-#     streamplot!(
-#         ax2,
-#         nl_osc_free_stream,
-#         0 .. 3,
-#         -5 .. 5,
-#         colormap = :rainbow1,
-#         gridsize = (32, 32),
-#         arrow_size = 0,
-#     )
-#     save_fig(prefix, "phaseportrait", "both", fig)
-# end
-
-function plot_phaseportrait(X1, X2, prefix)
-    fig = Figure(resolution = (700, 500), fontsize = 20)
-    ax = Axis(fig[1, 1], xlabel = L"$x_{1}$ [m]", ylabel = L"$x_{2}$ [m/s]")
-
-    streamplot!(
-        ax,
-        nl_osc_free_stream,
-        0 .. 3,
-        -5 .. 5,
-        colormap = :rainbow1,
-        colorrange = (0, 20),
-        gridsize = (32, 32),
-    )
-    Colorbar(fig[1, 2], limits = (0, 20), colormap = :rainbow1, label = L"$||\dot{x}||_{1}$ [1]")
-    save_fig(prefix, "phaseportrait_small", "both", fig)
-end
-
-function plot_bifurcation_stream(Fbif, prefix)
-    fig = Figure(resolution = (1000, 500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize = 20)
+function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
+    fig = Figure(resolution = (1200, 500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize = 20)
     ax1 = Axis(
         fig[1, 1],
         xlabel = L"$\tilde{F} + mg$ [N]",
@@ -127,13 +65,12 @@ function plot_bifurcation_stream(Fbif, prefix)
     streamplot!(
         ax2,
         nl_osc_free_stream,
-        0 .. 3,
-        -5 .. 5,
-        colormap = :rainbow1,
-        colorrange = (0, 20),
+        -1 .. 3,
+        -8 .. 5,
         gridsize = (32, 32),
     )
-    Colorbar(fig[1, 2][1, 2], limits = (0, 20), colormap = :rainbow1, label = L"$||\dot{x}||_{1}$ [1]")
+    lines!(ax2, x_bassin_bound[1,:], x_bassin_bound[2,:], linewidth = 3, color = :red)
+    lines!(ax2, [x_bassin_bound[1, 1], x_bassin_bound[1, end]], [x_bassin_bound[2, 1], x_bassin_bound[2, end]], linewidth = 3, color = :red )
     save_fig(prefix, "bif_phaseportrait", "both", fig)
 end
 
@@ -145,26 +82,6 @@ function init_grid_axs_1(fig)
         xscale = log10,
     )
     return ax
-end
-
-function init_grid_axs_2(fig, title_node)
-    ax1 = Axis(
-        fig[1, 1][1, 1],
-        title = title_node,
-        ylabel = L"$F_{\max}$ [N]",
-        xlabel = L"$a$ [N/s]",
-        xscale = log10,
-    )
-    ax2 = Axis(
-        fig[1, 2][1, 1],
-        title = "Spectral amplitude at resonance frequency",
-        ylabel = "Fₘ [N]",
-        xlabel = "a [N/s]",
-        xscale = log10,
-    )
-    axs = [ax1, ax2]
-
-    return axs
 end
 
 function init_large_grid_axs(fig, title_node, nrows, ncols)
@@ -189,29 +106,6 @@ function init_large_grid_axs(fig, title_node, nrows, ncols)
     return axs
 end
 
-function init_response_axs(fig, f1, f2)
-    ax1 = Axis(fig[1, 1], xlabel = "Time [s]", ylabel = "F(t) [N]")
-    ax2 = Axis(
-        fig[1, 2],
-        xlabel = "Frequency [Hz]",
-        ylabel = "Amplitude [1]",
-        xscale = log10,
-        xminorticks = IntervalsBetween(9),
-        xminorticksvisible = true,
-        xminorgridvisible = true,
-    )
-    ax3 = Axis(fig[2, 1], xlabel = "Time [s]", ylabel = "x₁(t) [m]")
-    ax4 = Axis(fig[2, 2], xlabel = "x₁ [m]", ylabel = "x₂ [m/s]")
-    axs = [ax1, ax2, ax3, ax4]
-    lines!(axs[2], [f1, f1], [-10, 2000], color = :red)
-    lines!(axs[2], [f2, f2], [-10, 2000], color = :red)
-    return axs
-end
-
-# function plot_spect_grid(fig, ax, fmax_scat, a_scat, resfreq_scat)
-
-# end
-
 function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     F = get_Fvec(t)
     sol = solve_nlo(x₀, (t[1], t[end]), p)
@@ -220,53 +114,6 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     lines!(axs[2], f_vec, ft)
     lines!(axs[3], sol.t, sol[1, :])
     lines!(axs[4], sol[1, :], sol[2, :], label = line_label)
-    # ylims!(axs[2])
-end
-
-function plot_bode(p::Dict, ω_vec::Vector, prefix::String, tf::Dict)
-
-    G, Y₀, U, Y, Ystat = tf["G"], tf["Y₀"], tf["U"], tf["Y"], tf["Ystat"]
-    fig = Figure(resolution = (1000, 800))
-    ax1 = Axis(
-        fig[1, 1],
-        xlabel = "ω [rad/s]",
-        ylabel = "Magnitude [dB]",
-        xscale = log10,
-        yscale = log10,
-        xticks =  10 .^ range(-2., 1., step=1),
-        xminorticks = IntervalsBetween(9),
-        xminorticksvisible = true,
-        xminorgridvisible = true,
-    )
-    ax2 = Axis(
-        fig[2, 1],
-        xlabel = "ω [rad/s]",
-        ylabel = "Phase [rad]",
-        xscale = log10,
-        xticks =  10 .^ range(-2., 1., step=1),
-        xminorticks = IntervalsBetween(9),
-        xminorticksvisible = true,
-        xminorgridvisible = true,
-    )
-    xlims!(ax1, (5e-2, 1e1))
-    xlims!(ax2, (5e-2, 1e1))
-
-    tf_vec = [G, Y₀, U, Y, Ystat]
-    label_vec = ["G", "Y₀", "U", "Y", "Ystat"]
-
-    for i = 1:length(tf_vec)
-        lines!(ax1, ω_vec, abs.(tf_vec[i]), label = label_vec[i])
-        lines!(ax2, ω_vec, angle.(tf_vec[i]) )
-    end
-
-    vlines!(ax1, [p["ω₀1"]], color = :red)
-    vlines!(ax2, [p["ω₀1"]], color = :red)
-    ylims!(ax1, (1e-3, 1e3))
-    ylims!(ax2, (-4, .5))
-
-    axislegend(ax1, merge = true, nbanks = 2, position = :rt)
-    save_fig(prefix, "Bodeplot_Δx=$Δx", "both", fig)
-    return fig
 end
 
 function plot_grid2(scatter_dict, node_vec, prefix)
@@ -349,13 +196,16 @@ function plot_superposition(Fvec, avec, Δx, p)
             local soly0 = soly0_(t)
 
             ax = Axis(
-                    fig[i, j], 
+                    fig[i, j],
+                    title = string("Experiment ", k),
                     xlabel = (i == nrows ? L"$t$ [s]" : ""),
                     ylabel = (j == 1 ? L"$x_{1}$ [m]" : ""), 
                     xminorticks=IntervalsBetween(5), 
                     xminorgridvisible=true,
+                    yminorticks=IntervalsBetween(5), 
+                    yminorgridvisible=true,
                 )
-            ax0 = Axis(fig[i, j], ylabel = (j == 3 ? L"$F$ [N]" : ""), ylabelcolor = :gray, yticklabelcolor = :gray, yaxisposition = :right, yticks = 0:40:160, xgridvisible = false, ygridvisible = false)
+            ax0 = Axis(fig[i, j], ylabel = (j == 3 ? L"$F$ [N]" : ""), ylabelcolor = :gray, yticklabelcolor = :gray, yaxisposition = :right, yticks = 0:50:150, xgridvisible = false, ygridvisible = false)
             hidespines!(ax0)
             hidexdecorations!(ax0)
 
@@ -363,10 +213,10 @@ function plot_superposition(Fvec, avec, Δx, p)
                 hideydecorations!(ax0)
             end
             if j > 1
-                hideydecorations!(ax, grid = false)
+                hideydecorations!(ax, grid = false, minorgrid = false)
             end
             if i < nrows
-                hidexdecorations!(ax, grid = false)
+                hidexdecorations!(ax, grid = false, minorgrid = false)
             end
 
             y = reduce(vcat, transpose.(sol.u))

@@ -55,7 +55,7 @@ end
 
 function solve_nlo(x₀, tspan, p)
     ivp = ODEProblem(nl_oscillator!, x₀, tspan, p)
-    if p["F_noise"]
+    if p["fixed_dt"]
         return solve(ivp, dt = p["dt"], adaptive = false)
     else
         return solve(ivp, dense=true)
@@ -64,7 +64,7 @@ end
 
 function solve_nlo_F(x₀, tspan, p)
     ivp = ODEProblem(nl_oscillator_F!, x₀, tspan, p)
-    if p["F_type"] == "noisy"
+    if p["fixed_dt"]
         return solve(ivp, dt = p["dt"], adaptive = false)
     else
         return solve(ivp, dense=true)

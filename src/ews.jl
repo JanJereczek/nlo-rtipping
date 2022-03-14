@@ -1,4 +1,3 @@
-
 function get_bassin_boundary(p, Fconst)
     # Load the important constants
     w0 = p["ω₀1"]
@@ -7,9 +6,9 @@ function get_bassin_boundary(p, Fconst)
     xₜ = p["xₜ"]
 
     # Define the constant forcing
+    p["fixed_dt"] = true
     p["F_type"] = "const"
     p["F_const"] = Fconst
-    p["fixed_dt"] = true
     p["dt"] = 0.01
     xmg = (p["m"] * p["g"] + p["F_const"]) / (p["c₁"] + p["k₁"])
 
@@ -28,6 +27,7 @@ function get_bassin_boundary(p, Fconst)
     end
     lb, ub, initial_x = [1.0], [5.0], [2.0]
     @time sol_nl = mcpsolve(f!, lb, ub, initial_x, reformulation = :smooth)
+    t_tip = sol_nl.zero[1]
     B = fB(t_tip)
 
     # Get the trajectory on bassin boundary.
