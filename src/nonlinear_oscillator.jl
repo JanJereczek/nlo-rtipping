@@ -17,34 +17,26 @@ function get_c(x1)
     return p["c₁"] .+ get_nl_stiffness.(x1)
 end
 
-function nl_oscillator!(dx, x, p, t)
-    c = get_c(x[1])
-    F = get_F(t)
-    dx[1] = x[2]
-    dx[2] = -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + F / p["m"] + p["g"]
-end
-
-function nl_oscillator_F!(dx, x, p, t)
-    c = get_c(x[1])
-    F = get_F(t)
-    dx[1] = x[2]
-    dx[2] = -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + F / p["m"]
-end
-
-function nl_osc_free_quiver(x1, x2)
-    scale = 5e-2
-    c = get_c(x[1])
-    return [scale .* x2, scale .* (-c ./ p["m"] .* x1 - p["d"] / p["m"] .* x2 .+ p["g"])]
-end
-
 function nl_osc_free(x)
     c = get_c(x[1])
     return [x[2], -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + p["g"]]
 end
 
-function nl_osc_free_stream(x)
-    c = get_c(x[1])
-    return Point2f(x[2], -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + p["g"])
+nl_osc_free_stream(x) = Point2f( nl_osc_free(x) )
+nl_osc_free_quiver(x) = 5e-2 .* nl_osc_free(x)
+
+function nl_oscillator!(dx, x, p, t)
+    F = get_F(t)
+    dx = nl_osc_free(x) + F .* [0, 1/( p["m"] )]
+    # dx[1] = x[2]
+    # dx[2] = -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + F / p["m"] + p["g"]
+end
+
+function nl_oscillator_F!(dx, x, p, t)
+    F = get_F(t)
+    dx = nl_osc_free(x) .+ F .* [0, 1/( p["m"] )] .- [0, p["g"]]
+    # dx[1] = x[2]
+    # dx[2] = -c / p["m"] * x[1] - p["d"] / p["m"] * x[2] + F / p["m"]
 end
 
 function solve_nlo(x₀, tspan, p)

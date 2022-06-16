@@ -2,21 +2,15 @@
 using DifferentialEquations, CairoMakie, Colors, Interpolations, Statistics, DrWatson, NLsolve;
 
 # Include self-written scripts.
-include(srcdir("forcing.jl"))
-include(srcdir("mechanics.jl"))
-include(srcdir("nonlinear_oscillator.jl"))
-include(srcdir("parameters.jl"))
+include(srcdir("ews.jl"))
 include(srcdir("plots.jl"))
 include(srcdir("utils.jl"))
-include(srcdir("video_helper.jl"))
-include(srcdir("ews.jl"))
-
-# Parameter dictionnary of the nlo.
-p = load_parameters()
+include(srcdir("forcing.jl"))
+include(srcdir("mechanics.jl"))
+include(srcdir("video_helper_2.jl"))
+include(srcdir("vanderpol_oscillator.jl"))
 
 # Define plotting options.
-plot_characteristics_bool = false
-plot_bifportrait_bool = false
 plot_superposition_bool = false
 plot_tip_grid_bool = true
 
@@ -26,8 +20,10 @@ plot_type = plot_types[2]
 framerate = 2                                       # [frame/second]
 
 # Define saving options.
-prefixes = [plotsdir("tmp/"), plotsdir()]
+prefixes = [plotsdir("vdp/"), plotsdir()]
 prefix = prefixes[1]
+
+p = load_parameters()
 
 if plot_type == "single"
     prefix_anim = string(prefix, "Δx")
@@ -58,41 +54,17 @@ elseif plot_type == "Δx"
 
 elseif plot_type == "D"
     title_func(x) = "D = $x"
-    D_vec = [0.5, 1.5]    # Vector of sampled dampings.
-    d_vec = D2d(D_vec, p)
+    D_vec = [1e-2, 5e-2, 1e-1, 1.5]    # Vector of sampled dampings.
 elseif plot_type == "σ"
     title_func(x) = "σ = $x N"
     σ_vec = [0.25, 0.5]
 end
 p["F_type"] = "ramp"
 
-# If D > 1 the equation has a singularity.
-if p["D"] < 1
-    ω_vec = 10 .^ (range(-4, stop = 4, length = 8001))
-    res_threshold = 1.1
-    get_ω_ampresp, get_f_ampresp, amp_ω_resp, ω_res, f_res =
-        get_resonance_characteristics(p, ω_vec, res_threshold)
-end
-
-# Plot the characteristics
-if plot_characteristics_bool
-    # Get characteristics of spring n°2.
-    x₁_vec = range(0.0, stop = 2.0, length = 1000)
-    c₂ = get_nl_stiffness.(x₁_vec)
-    plot_characteristics(x₁_vec, c₂, ω_vec, amp_ω_resp, prefix, "ω")
-end
-
-# Get system bifurcation.
-if plot_bifportrait_bool
-    Fbif = range(0, stop = 200, length = 2001)
-    x_bassin_bound = get_bassin_boundary(p, 0.0)
-    plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
-end
-
 # Sampled values of the tipping grid.
-nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
+nF, na = 10, 10                         # Number of points sampled in the ramp-parameter space.
 a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
-Δx = 0.6                                # Standard value if Δx not changed over looping.-
+Δx = 0.3                                # Standard value if Δx not changed over looping.-
 F_llim, F_ulim = -15, 2                 # linscale with ref = F_crit
 Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
@@ -111,27 +83,28 @@ if plot_tip_grid_bool
     grid_dict = Dict()
 
     if plot_type == "single"
-        plot_scatter(get_scatter(Δx, plot_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
+        plot_scatter(get_scatter(Δx, plot_type, sss, solve_vdP), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
     else
         if plot_type == "Δx"
             for Δx in Δx_vec
-                grid_dict[string(Δx)] = get_scatter(Δx, plot_type, sss)
+                grid_dict[string(Δx)] = get_scatter(Δx, plot_type, sss, solve_vdP)
             end
             plot_grid4(grid_dict, Δx_vec, prefix)
 
             if gen_anim
                 record(grid_fig, string(prefix_anim, "slices.mp4"), Δx_vec; framerate = framerate) do Δx
-                    plot_scatter(get_scatter(Δx, anim_type, sss), sss, grid_axs, grid_fig, Δx, prefix_anim)
+                    plot_scatter(get_scatter(Δx, anim_type, sss, solve_vdP), sss, grid_axs, grid_fig, Δx, prefix_anim)
                 end
             end
         elseif plot_type == "D"
-            for d in d_vec
-                grid_dict[string(d)] = get_scatter(d, plot_type, sss)
+            for D in D_vec
+                grid_dict[string(D)] = get_scatter(D, plot_type, sss, solve_vdP)
             end
-            plot_grid2(grid_dict, d_vec, prefix)
+            plot_grid4(grid_dict, D_vec, prefix)
+
         elseif plot_type == "σ"
             for σ in σ_vec
-                grid_dict[string(σ)] = get_scatter(σ, plot_type, sss)
+                grid_dict[string(σ)] = get_scatter(σ, plot_type, sss, solve_vdP)
             end
             plot_grid2(grid_dict, σ_vec, prefix)
         end

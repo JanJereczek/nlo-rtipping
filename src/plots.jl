@@ -116,17 +116,18 @@ function plot_grid2(scatter_dict, node_vec, prefix)
     save_fig(prefix, "grid2", "both", fig)
 end
 
-function plot_grid4(scatter_dict, Δx_vec, prefix)
+function plot_grid4(scatter_dict, node_vec, prefix)
     fig = Figure( resolution = (1500, 1500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
+    # title = L"$\Delta x_{1} =$ %$(string(Δx)) m",
     for i in 1:2
         for j in 1:2
             l = (i-1)*2 + j
-            Δx = Δx_vec[l]
-            x = scatter_dict[string(Δx)]
+            node = node_vec[l]
+            x = scatter_dict[string(node)]
             ax = Axis(
                 fig[i,j][1,1], 
-                title = L"$\Delta x_{1} =$ %$(string(Δx)) m", 
+                title = L"$\,$ %$(string(node))", 
                 xlabel = L"$a$ [N/s]",
                 # xlabel = (i == 1 ? L"$\hat{t}$ [s]" : L"$a$ [N/s]"),
                 ylabel = L"$F_{\max}$ [N]",
@@ -144,6 +145,7 @@ function plot_grid4(scatter_dict, Δx_vec, prefix)
     Colorbar(fig[:, 3], colormap = :rainbow1, colorrange = (1.25, 3.25), label = L"$x_{1}(t = t_{e})$ [m]")
     save_fig(prefix, "grid4", "both", fig)
 end
+
 
 function plot_superposition(Fvec, avec, Δx, p)
     nrows = 2

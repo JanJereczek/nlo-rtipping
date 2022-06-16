@@ -5,7 +5,7 @@ mutable struct SlicedScatterStructs
     Fvec::Vector{Float64}
 end
 
-function get_scatter(node, plot_type, sss)
+function get_scatter(node, plot_type, sss, solve_ode)
     Fmax_scat, a_scat, x_scat = zeros(0), zeros(0), zeros(0)
 
     if (plot_type == "Δx") | (plot_type == "single")
@@ -34,7 +34,7 @@ function get_scatter(node, plot_type, sss)
             append!(Fmax_scat, Fmax)
             append!(a_scat, a)
 
-            local sol = solve_nlo(x₀, tspan, p)
+            local sol = solve_ode(x₀, tspan, p)
             append!(x_scat, last(sol)[1])
         end
     end
