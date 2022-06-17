@@ -117,7 +117,7 @@ function plot_grid2(scatter_dict, node_vec, prefix)
 end
 
 function plot_grid4(scatter_dict, node_vec, prefix)
-    fig = Figure( resolution = (1500, 1500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
+    fig = Figure( resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize=28 )
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
     # title = L"$\Delta x_{1} =$ %$(string(Δx)) m",
     for i in 1:2
@@ -138,11 +138,11 @@ function plot_grid4(scatter_dict, node_vec, prefix)
                 yminorticks = IntervalsBetween(5),
                 yminorgridvisible = true,
             )
-            hm = scatter!(ax, x[2], x[1], color = x[3], colormap = :rainbow1, colorrange = (1.25, 3.25) )
-            ct = contour!(ax, x[2], x[1], x[3], color = :black, levels = [2.25, 2.26], linewidth = 5)
+            hm = scatter!(ax, x[2], x[1], color = x[3], colormap = :rainbow1, colorrange = (0, 3) )
+            # ct = contour!(ax, x[2], x[1], x[3], color = :black, levels = [2.25, 2.26], linewidth = 5)
         end
     end
-    Colorbar(fig[:, 3], colormap = :rainbow1, colorrange = (1.25, 3.25), height = Relative(1/2), label = L"$x_{1}(t = t_{e})$ [m]")
+    Colorbar(fig[:, 3], colormap = :rainbow1, colorrange = (0, 3), height = Relative(1/2), highclip = :red, label = L"$|| x(t = t_{e}) ||$")
     save_fig(prefix, "grid4", "both", fig)
 end
 

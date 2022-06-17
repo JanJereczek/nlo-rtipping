@@ -21,10 +21,11 @@ function get_scatter(node, plot_type, sss, solve_ode)
 
     x₀ = get_x₀(p, Δx)
     println("Getting results for x₀ = $x₀")
+    sol_dict = Dict()
 
     for a in sss.avec
         p["aF"] = a
-        local tend = p["F_crit"] / a + 10
+        local tend = p["F_crit"] / minimum(sss.avec) + 10
         local tspan = (0.0, tend)   # Simulation time span.
 
         for Fmax in sss.Fvec
@@ -35,10 +36,11 @@ function get_scatter(node, plot_type, sss, solve_ode)
             append!(a_scat, a)
 
             local sol = solve_ode(x₀, tspan, p)
-            append!(x_scat, last(sol)[1])
+            sol_dict[string(Fmax, "  ", a)] = sol
+            append!(x_scat, norm(last(sol), 2))
         end
     end
-    return [Fmax_scat, a_scat, x_scat]
+    return [Fmax_scat, a_scat, x_scat], sol_dict
 end
 
 function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
