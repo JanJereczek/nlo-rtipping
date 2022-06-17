@@ -1,78 +1,5 @@
 include("utils.jl")
-include("nonlinear_oscillator.jl")
-
-function plot_equil_control(p, prefix)
-    ctrl_x₀ = [p["xₜ"] - 1e-1, 0.0]
-    sol = solve_nlo(ctrl_x₀, [0, 100], p)
-    u = reduce(vcat, transpose.(sol.u))
-
-    fig = Figure(resolution = (400, 800), fontsize = 14)
-    ax1 = Axis(fig[1, 1], ylabel = L"$F(t)$ [N]")
-    ax2 = Axis(fig[2, 1], xlabel = L"$t$ [s]", ylabel = L"$x$ [m]")
-
-    lines!(ax1, sol.t, get_F.(sol.t))
-    lines!(ax2, sol.t, u[:, 1])
-    ylims!(ax1, (100, 150))
-    ylims!(ax2, (0, 2))
-    save_fig(prefix, "control_run", "both", fig)
-end
-
-function plot_characteristics(x₁_vec, c₂, f_vec, amp_resp, prefix, mode)
-    fig = Figure(resolution = (1000, 500), fontsize = 14)
-
-    if mode == "ω"
-        freqlabel = L"$\omega$ [rad/s]"
-    else
-        freqlabel = L"$f$ [Hz]"
-    end
-
-    ax1 = Axis(
-        fig[1, 1],
-        title = "Characteristic curve of spring n°2",
-        xlabel = L"$x$ [m]",
-        ylabel = L"$c_{2}(x)$ [kg/s²]",
-    )
-
-    ax2 = Axis(
-        fig[1, 2],
-        xlabel = freqlabel,
-        ylabel = L"$|\cdot|$ [dB]",
-        xscale = log10,
-        yscale = log10,
-        xminorticks = IntervalsBetween(9),
-        xminorticksvisible = true,
-        xminorgridvisible = true,
-    )
-
-    lines!(ax1, x₁_vec, c₂)
-    lines!(ax2, f_vec, amp_resp)
-    save_fig(prefix, "characteristics", "both", fig)
-end
-
-function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
-    fig = Figure(resolution = (1200, 500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize = 20)
-    ax1 = Axis(
-        fig[1, 1],
-        xlabel = L"$\tilde{F} + mg$ [N]",
-        ylabel = L"$\tilde{x}$ [m]",
-    )
-    lines!(ax1, Fbif, branch_xeq1.(Fbif), label = L"$\tilde{x}_{-}$ [m]")
-    lines!(ax1, Fbif, branch_xeq2.(Fbif), label = L"$\tilde{x}_{+}$ [m]")
-    axislegend(ax1, merge = true, nbanks = 2, position = :lt)
-    
-    ax2 = Axis(fig[1, 2][1, 1], xlabel = L"$x_{1}$ [m]", ylabel = L"$x_{2}$ [m/s]")
-
-    streamplot!(
-        ax2,
-        nl_osc_free_stream,
-        -1 .. 3,
-        -8 .. 5,
-        gridsize = (32, 32),
-    )
-    lines!(ax2, x_bassin_bound[1,:], x_bassin_bound[2,:], linewidth = 3, color = :red)
-    lines!(ax2, [x_bassin_bound[1, 1], x_bassin_bound[1, end]], [x_bassin_bound[2, 1], x_bassin_bound[2, end]], linewidth = 3, color = :red )
-    save_fig(prefix, "bif_phaseportrait", "both", fig)
-end
+include("pwlinear_oscillator.jl")
 
 function init_grid_axs(fig)
     ax = Axis(
@@ -86,7 +13,7 @@ end
 
 function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     F = get_Fvec(t)
-    sol = solve_nlo(x₀, (t[1], t[end]), p)
+    sol = solve_plo(x₀, (t[1], t[end]), p)
     line_label = string("Fmax=", round(Fmax, digits = 2), ",  a=", round(a, digits = 2))
     lines!(axs[1], t, F)
     lines!(axs[2], f_vec, ft)
@@ -95,7 +22,7 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
 end
 
 function plot_grid2(scatter_dict, node_vec, prefix)
-    fig = Figure( resolution = (1500, 750), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
+    fig = Figure( resolution = (1500, 750), font = srcdir("cmunrm.ttf"), fontsize=28 )
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
     for i in 1:2
         node = node_vec[i]
@@ -151,7 +78,7 @@ function plot_superposition(Fvec, avec, Δx, p)
     nrows = 2
     ncols = 3
 
-    fig = Figure(resolution = (1500, 800), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
+    fig = Figure(resolution = (1500, 800), font = srcdir("cmunrm.ttf"), fontsize=28 )
     ia = 31
     Fmax = Fvec[ isapprox.(Fvec, 45; atol=1e-1) ][1]
     x₀ = get_x₀(p, Δx)
@@ -166,13 +93,13 @@ function plot_superposition(Fvec, avec, Δx, p)
             p["Fmax"] = Fmax
             p["t₂"] = p["t₁"] + p["Fmax"] / p["aF"]
             Fplot = get_Fvec(t)
-            local sol = solve_nlo(x₀, tspan, p)
+            local sol = solve_plo(x₀, tspan, p)
 
-            local solF_ = solve_nlo_F([0., 0.], tspan, p)
+            local solF_ = solve_plo_F([0., 0.], tspan, p)
             local solF = solF_(t)
 
             p["aF"] = 0
-            local soly0_ = solve_nlo(x₀, tspan, p)
+            local soly0_ = solve_plo(x₀, tspan, p)
             local soly0 = soly0_(t)
 
             ax = Axis(

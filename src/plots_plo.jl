@@ -1,9 +1,9 @@
 include("utils.jl")
-include("nonlinear_oscillator.jl")
+include("pwlinear_oscillator.jl")
 
 function plot_equil_control(p, prefix)
     ctrl_x₀ = [p["xₜ"] - 1e-1, 0.0]
-    sol = solve_nlo(ctrl_x₀, [0, 100], p)
+    sol = solve_plo(ctrl_x₀, [0, 100], p)
     u = reduce(vcat, transpose.(sol.u))
 
     fig = Figure(resolution = (400, 800), fontsize = 14)
@@ -50,7 +50,7 @@ function plot_characteristics(x₁_vec, c₂, f_vec, amp_resp, prefix, mode)
 end
 
 function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
-    fig = Figure(resolution = (1200, 500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize = 20)
+    fig = Figure(resolution = (1200, 500), font = srcdir("cmunrm.ttf"), fontsize = 20)
     ax1 = Axis(
         fig[1, 1],
         xlabel = L"$\tilde{F} + mg$ [N]",
@@ -64,7 +64,7 @@ function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
 
     streamplot!(
         ax2,
-        nl_osc_free_stream,
+        pwlin_oscillator_stream,
         -1 .. 3,
         -8 .. 5,
         gridsize = (32, 32),
@@ -86,7 +86,7 @@ end
 
 function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     F = get_Fvec(t)
-    sol = solve_nlo(x₀, (t[1], t[end]), p)
+    sol = solve_plo(x₀, (t[1], t[end]), p)
     line_label = string("Fmax=", round(Fmax, digits = 2), ",  a=", round(a, digits = 2))
     lines!(axs[1], t, F)
     lines!(axs[2], f_vec, ft)
@@ -95,7 +95,7 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
 end
 
 function plot_grid2(scatter_dict, node_vec, prefix)
-    fig = Figure( resolution = (1500, 750), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
+    fig = Figure( resolution = (1500, 750), font = srcdir("cmunrm.ttf"), fontsize=28 )
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
     for i in 1:2
         node = node_vec[i]
@@ -117,7 +117,7 @@ function plot_grid2(scatter_dict, node_vec, prefix)
 end
 
 function plot_grid4(scatter_dict, node_vec, prefix)
-    fig = Figure( resolution = (1500, 1500), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
+    fig = Figure( resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize=28 )
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
     # title = L"$\Delta x_{1} =$ %$(string(Δx)) m",
     for i in 1:2
@@ -151,7 +151,7 @@ function plot_superposition(Fvec, avec, Δx, p)
     nrows = 2
     ncols = 3
 
-    fig = Figure(resolution = (1500, 800), font = "/home/jan/pCloudDrive/My Documents/Fonts/cmu/cmunrm.ttf", fontsize=28 )
+    fig = Figure(resolution = (1500, 800), font = srcdir("cmunrm.ttf"), fontsize=28 )
     ia = 31
     Fmax = Fvec[ isapprox.(Fvec, 45; atol=1e-1) ][1]
     x₀ = get_x₀(p, Δx)
@@ -166,13 +166,13 @@ function plot_superposition(Fvec, avec, Δx, p)
             p["Fmax"] = Fmax
             p["t₂"] = p["t₁"] + p["Fmax"] / p["aF"]
             Fplot = get_Fvec(t)
-            local sol = solve_nlo(x₀, tspan, p)
+            local sol = solve_plo(x₀, tspan, p)
 
-            local solF_ = solve_nlo_F([0., 0.], tspan, p)
+            local solF_ = solve_plo_F([0., 0.], tspan, p)
             local solF = solF_(t)
 
             p["aF"] = 0
-            local soly0_ = solve_nlo(x₀, tspan, p)
+            local soly0_ = solve_plo(x₀, tspan, p)
             local soly0 = soly0_(t)
 
             ax = Axis(

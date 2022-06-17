@@ -36,7 +36,7 @@ function get_bassin_boundary(p, Fconst)
 
     # Get the trajectory on bassin boundary.
     x₀ = [x₁(A, B, 0), x₂(A, B, 0)]
-    return solve_nlo(x₀, (0, t_tip), p)
+    return solve_plo(x₀, (0, t_tip), p)
 
     # Turn original options back on.
     p["fixed_dt"] = fixed_dt_bool

@@ -2,7 +2,6 @@
 using DifferentialEquations, CairoMakie, Colors, Interpolations, Statistics, DrWatson, NLsolve;
 
 # Include self-written scripts.
-include(srcdir("ews.jl"))
 include(srcdir("utils.jl"))
 include(srcdir("forcing.jl"))
 include(srcdir("mechanics.jl"))
@@ -95,18 +94,19 @@ if plot_tip_grid_bool
 
             if gen_anim
                 record(grid_fig, string(prefix_anim, "slices.mp4"), Δx_vec; framerate = framerate) do Δx
-                    plot_scatter(get_scatter(Δx, anim_type, sss, solve_forced_vdP), sss, grid_axs, grid_fig, Δx, prefix_anim)
+                    grid_dict[string(Δx)], sol_dict[string(Δx)] = get_scatter(Δx, plot_type, sss, solve_forced_vdP)
+                    plot_scatter(grid_dict[string(Δx)], sss, grid_axs, grid_fig, Δx, prefix_anim)
                 end
             end
         elseif plot_type == "D"
             for D in D_vec
-                grid_dict[string(D)] = get_scatter(D, plot_type, sss, solve_forced_vdP)
+                grid_dict[string(D)], sol_dict[string(Δx)] = get_scatter(D, plot_type, sss, solve_forced_vdP)
             end
             plot_grid4(grid_dict, D_vec, prefix)
 
         elseif plot_type == "σ"
             for σ in σ_vec
-                grid_dict[string(σ)] = get_scatter(σ, plot_type, sss, solve_forced_vdP)
+                grid_dict[string(σ)], sol_dict[string(Δx)] = get_scatter(σ, plot_type, sss, solve_forced_vdP)
             end
             plot_grid2(grid_dict, σ_vec, prefix)
         end

@@ -1,6 +1,5 @@
 using NLsolve, Latexify, DifferentialEquations, CairoMakie
-include(srcdir("parameters.jl"))
-include(srcdir("nonlinear_oscillator.jl"))
+include(srcdir("pwlinear_oscillator.jl"))
 
 p = load_parameters()
 w0 = p["ω₀1"]
@@ -34,7 +33,7 @@ println("B, t_tip = ", [B, t_tip])
 x₀ = [x₁(A, B, 0), x₂(A, B, 0)]
 println("Residual: ", [x₁(A, B, t_tip) - xₜ, x₂(A, B, t_tip)] )
 
-sol = solve_nlo(x₀, (0, 5), p)
+sol = solve_plo(x₀, (0, 5), p)
 fig = Figure()
 ax = Axis(fig[1,1])
 lines!(ax, sol.t, sol[1, :])

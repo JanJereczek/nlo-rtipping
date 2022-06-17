@@ -1,5 +1,5 @@
 include(srcdir("utils.jl"))
-include(srcdir("parameters.jl"))
+include(srcdir("pwlinear_oscillator.jl"))
 
 p = load_parameters()
 

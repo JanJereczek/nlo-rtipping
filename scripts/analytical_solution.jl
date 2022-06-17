@@ -1,4 +1,4 @@
-include(srcdir("parameters.jl"))
+include(srcdir("pwlinear_oscillator.jl"))
 
 function get_analytical_sol_IC(t)
     k1 = exp( -p["D"] * t * p["ω₀1"] )
