@@ -15,16 +15,21 @@ function get_scatter(node, plot_type, sss, solve_ode)
     elseif plot_type == "D"
         d = D2d(node, p)
         p["d"] = d
-        Δx = 0.6
+        Δx = p["Δx"]
     end
 
     x₀ = get_x₀(p, Δx)
     println("Getting results for x₀ = $x₀")
     sol_dict = Dict()
+    t_buffer = 100
 
     for a in sss.avec
         p["aF"] = a
-        local tend = p["F_crit"] / minimum(sss.avec) + 10
+        if p["fixed_tend"] == true
+            local tend = p["F_crit"] / minimum(sss.avec) + t_buffer
+        else
+            local tend = p["F_crit"] / a + t_buffer
+        end
         local tspan = (0.0, tend)   # Simulation time span.
 
         for Fmax in sss.Fvec
@@ -35,8 +40,12 @@ function get_scatter(node, plot_type, sss, solve_ode)
             append!(a_scat, a)
 
             local sol = solve_ode(x₀, tspan, p)
-            sol_dict[string(Fmax, "  ", a)] = sol
-            append!(x_scat, norm(last(sol), 2))
+            sol_dict[string(Fmax, "  ", a)] = 0 # sol
+            # append!(x_scat, norm(last(sol), 2))
+            nend = 100
+            end_sol = sol(range(tend - t_buffer / 10, stop = tend, length = nend))
+            end_position = reverse([end_sol.u[end-i][1] for i = 0:nend-1])
+            append!(x_scat, abs(mean(end_position)))
         end
     end
     return [Fmax_scat, a_scat, x_scat], sol_dict

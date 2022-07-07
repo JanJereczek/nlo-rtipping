@@ -6,7 +6,7 @@ function get_nl_stiffness(x₁)
 end
 
 function get_ω₀(c)
-    return sqrt( c/p["m"] )
+    return sqrt(c / p["m"])
 end
 
 # Compute damping degree D.
@@ -23,12 +23,12 @@ end
 function get_bode_amp(ω)
     η = ω ./ p["ω₀1"]
     c = p["c₁"] + p["k₁"]
-    return 1/ ( c * ( sqrt((1 - η^2)^2 + 4 * p["D"]^2 * η^2) ) )
+    return 1 / (c * (sqrt((1 - η^2)^2 + 4 * p["D"]^2 * η^2)))
 end
 
 function get_bode_phase(ω)
     η = ω ./ p["ω₀1"]
-    return  atan( 2*p["D"]*η, 1 - η^2  )
+    return atan(2 * p["D"] * η, 1 - η^2)
 end
 
 # Compute resonance frequency for given parameter set.
@@ -52,7 +52,7 @@ function get_resonance_characteristics(p::Dict, ω_vec::Vector, res_threshold::F
     println(test_msg, isapprox(ω_res, ω_res_num; atol = 1 * dω))
 
     # Get lower and upper limits of resonance region
-    ωres_vec = ω_vec[ amp_ω_resp .> (res_threshold*amp_ω_resp[1]) ]
+    ωres_vec = ω_vec[amp_ω_resp.>(res_threshold*amp_ω_resp[1])]
     ω1_res, ω2_res = round(ωres_vec[1]; digits = 3), round(ωres_vec[end]; digits = 3)
 
     # Zip characteristics

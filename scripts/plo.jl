@@ -1,5 +1,6 @@
 # Import packages.
-using DifferentialEquations, CairoMakie, Colors, Interpolations, Statistics, DrWatson, NLsolve;
+using DifferentialEquations,
+    LinearAlgebra, CairoMakie, Colors, Interpolations, Statistics, DrWatson, NLsolve;
 
 # Include self-written scripts.
 include(srcdir("utils.jl"))
@@ -11,7 +12,7 @@ include(srcdir("mechanics_plo.jl"))
 include(srcdir("pwlinear_oscillator.jl"))
 
 # Parameter dictionnary of the nlo.
-p = load_parameters()
+p = load_highfreq_parameters()
 
 # Define plotting options.
 plot_characteristics_bool = false
@@ -21,7 +22,7 @@ plot_tip_grid_bool = true
 
 # Decide whether animation should be created or not.
 plot_types = ["single", "Δx", "D", "σ"]             # Choose between slicing (or not) over IC, damping degree or noise variance.
-plot_type = plot_types[2]
+plot_type = plot_types[3]
 framerate = 2                                       # [frame/second]
 
 # Define saving options.
@@ -45,6 +46,12 @@ else
     p["fixed_dt"] = false
 end
 
+p["fixed_tend"] = false
+p["Δx"] = 0.6                           # Standard value if Δx not changed over looping.-
+
+# p["fixed_dt"] = true
+# p["dt"] = 1e-1                      # accelerate computation
+
 if plot_type == "single"
     title_func(x) = ""
 elseif plot_type == "Δx"
@@ -57,7 +64,8 @@ elseif plot_type == "Δx"
 
 elseif plot_type == "D"
     title_func(x) = "D = $x"
-    D_vec = [1e-2, 5e-2, 1e-1, 1.5]    # Vector of sampled dampings.
+    # D_vec = [1e-1, 2e-1, 5e-1, 1]    # Vector of sampled dampings.
+    D_vec = [1e-3, 5e-3, 1e-2, 5e-2]    # Vector of sampled dampings.
 elseif plot_type == "σ"
     title_func(x) = "σ = $x N"
     σ_vec = [0.25, 0.5]
@@ -88,9 +96,10 @@ if plot_bifportrait_bool
 end
 
 # Sampled values of the tipping grid.
-nF, na = 10, 10                         # Number of points sampled in the ramp-parameter space.
-a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
-Δx = 0.3                                # Standard value if Δx not changed over looping.-
+nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
+# a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
+a_llim, a_ulim = -1, 3                  # Range of sampled slopes.
+Δx = p["Δx"]                            # Standard value if Δx not changed over looping.-
 F_llim, F_ulim = -15, 2                 # linscale with ref = F_crit
 Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
@@ -98,7 +107,7 @@ sss = SlicedScatterStructs(avec, Fvec)
 
 # Plot the superposed solutions.
 if plot_superposition_bool
-    plot_superposition(Fvec, avec, Δx, p)
+    plot_superposition(Fvec, avec, Δx, p, solve_plo, solve_plo_F; Fapprox = Fvec[end])
 end
 
 sol_dict = Dict()
@@ -110,29 +119,53 @@ if plot_tip_grid_bool
     grid_dict = Dict()
 
     if plot_type == "single"
-        plot_scatter(get_scatter(Δx, plot_type, sss, solve_plo), sss, grid_axs, grid_fig, Δx, prefix_anim, "fixed_cb")
+        plot_scatter(
+            get_scatter(Δx, plot_type, sss, solve_plo),
+            sss,
+            grid_axs,
+            grid_fig,
+            Δx,
+            prefix_anim,
+            "fixed_cb",
+        )
     else
         if plot_type == "Δx"
             for Δx in Δx_vec
-                grid_dict[string(Δx)], sol_dict[string(Δx)] = get_scatter(Δx, plot_type, sss, solve_plo)
+                grid_dict[string(Δx)], sol_dict[string(Δx)] =
+                    get_scatter(Δx, plot_type, sss, solve_plo)
             end
             plot_grid4(grid_dict, Δx_vec, prefix)
 
             if gen_anim
-                record(grid_fig, string(prefix_anim, "slices.mp4"), Δx_vec; framerate = framerate) do Δx
-                    grid_dict[string(Δx)], sol_dict[string(Δx)] = get_scatter(Δx, plot_type, sss, solve_plo)
-                    plot_scatter(grid_dict[string(Δx)], sss, grid_axs, grid_fig, Δx, prefix_anim)
+                record(
+                    grid_fig,
+                    string(prefix_anim, "slices.mp4"),
+                    Δx_vec;
+                    framerate = framerate,
+                ) do Δx
+                    grid_dict[string(Δx)], sol_dict[string(Δx)] =
+                        get_scatter(Δx, plot_type, sss, solve_plo)
+                    plot_scatter(
+                        grid_dict[string(Δx)],
+                        sss,
+                        grid_axs,
+                        grid_fig,
+                        Δx,
+                        prefix_anim,
+                    )
                 end
             end
         elseif plot_type == "D"
             for D in D_vec
-                grid_dict[string(D)], sol_dict[string(Δx)] = get_scatter(D, plot_type, sss, solve_plo)
+                grid_dict[string(D)], sol_dict[string(D)] =
+                    get_scatter(D, plot_type, sss, solve_plo)
             end
             plot_grid4(grid_dict, D_vec, prefix)
 
         elseif plot_type == "σ"
             for σ in σ_vec
-                grid_dict[string(σ)], sol_dict[string(Δx)] = get_scatter(σ, plot_type, sss, solve_plo)
+                grid_dict[string(σ)], sol_dict[string(σ)] =
+                    get_scatter(σ, plot_type, sss, solve_plo)
             end
             plot_grid2(grid_dict, σ_vec, prefix)
         end

@@ -17,13 +17,15 @@ function get_bassin_boundary(p, Fconst)
     xmg = (p["m"] * p["g"] + p["F_const"]) / (p["c₁"] + p["k₁"])
 
     # Analytical solutions for position and speed.
-    x₁(A, B, t) = exp(-D*w0*t) * ( A*cos(wd*t) + B*sin(wd*t) ) + xmg
-    x₂(A, B, t) = -D*w0*exp(-D*w0*t) * ( A*cos(wd*t) + B*sin(wd*t) ) + exp(-D*w0*t) * ( -A*wd*sin(wd*t) + B*wd*cos(wd*t) )
-    
+    x₁(A, B, t) = exp(-D * w0 * t) * (A * cos(wd * t) + B * sin(wd * t)) + xmg
+    x₂(A, B, t) =
+        -D * w0 * exp(-D * w0 * t) * (A * cos(wd * t) + B * sin(wd * t)) +
+        exp(-D * w0 * t) * (-A * wd * sin(wd * t) + B * wd * cos(wd * t))
+
     # Analytical solutions for the constants A and B. The latter depends on an unknown time t_tip.
     # Equations derived from x₁(t = 0) = x₁(t = t_tip) = xₜ
     A = xₜ - xmg
-    fB(t) = (exp(D*w0*t) * (xₜ - xmg) - A*cos(wd*t)) / (sin(wd*t))
+    fB(t) = (exp(D * w0 * t) * (xₜ - xmg) - A * cos(wd * t)) / (sin(wd * t))
 
     # Compute t_tip by setting x₂(t = t_tip) = 0. Notice: Initial guess quite important... but not dependent on the input Fconst!
     function f!(F, x)

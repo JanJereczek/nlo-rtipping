@@ -12,11 +12,11 @@ function nlo_transfer(p::Dict, x₀::Vector, ω::Any, region::Int)
     end
 
     K = 1 / p["m"]
-    denum = s .^ 2 .+ 2*p["D"]*p["ω₀1"] .* s .+ p["ω₀1"]^2
+    denum = s .^ 2 .+ 2 * p["D"] * p["ω₀1"] .* s .+ p["ω₀1"]^2
     G = K ./ denum
 
     # num_ic = x₀[1] .* s .+ x₀[2] .+ 2*p["D"]*p["ω₀1"] * x₀[1]
-    num_ic = (x₀[1]-xeq) .* s .+ x₀[2] .+ 2*p["D"]*p["ω₀1"]*(x₀[1]-xeq)
+    num_ic = (x₀[1] - xeq) .* s .+ x₀[2] .+ 2 * p["D"] * p["ω₀1"] * (x₀[1] - xeq)
     Y₀ = num_ic ./ denum
     return G, Y₀
 end
@@ -33,14 +33,14 @@ function fsplit_transfer(p::Dict, x₀::Vector, ω::Any, U::Vector, region::Int)
     end
 
     K = 1 / p["m"]
-    denum = s .^ 2 .+ 2*p["D"]*p["ω₀1"] .* s .+ p["ω₀1"]^2
+    denum = s .^ 2 .+ 2 * p["D"] * p["ω₀1"] .* s .+ p["ω₀1"]^2
     G = K ./ denum
     Y₁ = G .* U
 
-    num_ic = (x₀[1]-xeq) .* s .+ x₀[2] .+ 2*p["D"]*p["ω₀1"]*(x₀[1]-xeq)
+    num_ic = (x₀[1] - xeq) .* s .+ x₀[2] .+ 2 * p["D"] * p["ω₀1"] * (x₀[1] - xeq)
     Y₀ = num_ic ./ denum
 
-    Y₂ = p["g"] ./ s ./ denum 
+    Y₂ = p["g"] ./ s ./ denum
     return G, Y₀, Y₁, Y₂
 end
 

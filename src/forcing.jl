@@ -21,6 +21,6 @@ function get_Fvec(t)
     F[t.<p["t₁"]] .= 0
     indices = (t .< p["t₂"]) .& (t .≥ p["t₁"])
     F[indices] .= p["aF"] * (t[indices] .- p["t₁"])
-    F[t .≥ p["t₂"]] .= p["aF"] * (p["t₂"] - p["t₁"])
+    F[t.≥p["t₂"]] .= p["aF"] * (p["t₂"] - p["t₁"])
     return F
 end
