@@ -57,7 +57,7 @@ end
 
 function plot_grid4(scatter_dict, node_vec, prefix)
     fig = Figure(resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize = 28)
-    pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
+    pws = [L"$10^{-3}$", L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$"]
     # title = L"$\Delta x_{1} =$ %$(string(Δx)) m",
     for i = 1:2
         for j = 1:2
@@ -66,14 +66,14 @@ function plot_grid4(scatter_dict, node_vec, prefix)
             x = scatter_dict[string(node)]
             ax = Axis(
                 fig[i, j][1, 1],
-                title = L"$\,$ %$(string(node))",
-                xlabel = L"$a$ [N/s]",
+                title = L"$\Delta x = $ %$(string(node))",
+                xlabel = (i == 1 ? " " : L"$a$ ") ,
                 # xlabel = (i == 1 ? L"$\hat{t}$ [s]" : L"$a$ [N/s]"),
-                ylabel = L"$F_{\max}$ [N]",
+                ylabel = (j == 1 ? L"$F_{\max}$ " : " "),
                 xscale = log10,
                 xaxisposition = (i == 1 ? :top : :bottom),
                 yaxisposition = (j == 1 ? :left : :right),
-                xticks = (10.0 .^ (-2:3), pws),
+                xticks = (10.0 .^ (-3:1), pws),
                 yminorticks = IntervalsBetween(5),
                 yminorgridvisible = true,
             )
@@ -83,17 +83,26 @@ function plot_grid4(scatter_dict, node_vec, prefix)
                 x[1],
                 color = x[3],
                 colormap = :rainbow1,
-                colorrange = (0, 3),
+                colorrange = (p["F_crit"] + F_llim, 3),
             )
-            # ct = contour!(ax, x[2], x[1], x[3], color = :black, levels = [2.25, 2.26], linewidth = 5)
+            contour!(
+                ax,
+                x[2],
+                x[1],
+                x[3],
+                color = :black,
+                levels = [8],
+                linewidth = 5,
+            )
         end
     end
     Colorbar(
         fig[:, 3],
         colormap = :rainbow1,
-        colorrange = (0, 3),
-        height = Relative(1 / 2),
+        colorrange = (p["F_crit"] + F_llim, 3),
+        height = Relative( 1/2 ),
         highclip = :red,
+        lowclip = :purple,
         label = L"$|| x(t = t_{e}) ||$",
     )
     save_fig(prefix, "grid4", "both", fig)
@@ -146,18 +155,18 @@ function plot_superposition(
                 yminorticks = IntervalsBetween(5),
                 yminorgridvisible = true,
             )
-            ax0 = Axis(
-                fig[i, j],
-                ylabel = (j == 3 ? L"$F$ [N]" : ""),
-                ylabelcolor = :gray,
-                yticklabelcolor = :gray,
-                yaxisposition = :right,
-                yticks = 0:0.5:2,
-                xgridvisible = false,
-                ygridvisible = false,
-            )
-            hidespines!(ax0)
-            hidexdecorations!(ax0)
+            # ax0 = Axis(
+            #     fig[i, j],
+            #     ylabel = (j == 3 ? L"$F$ [N]" : ""),
+            #     ylabelcolor = :gray,
+            #     yticklabelcolor = :gray,
+            #     yaxisposition = :right,
+            #     yticks = 0:0.5:2,
+            #     xgridvisible = false,
+            #     ygridvisible = false,
+            # )
+            # hidespines!(ax0)
+            # hidexdecorations!(ax0)
 
             if j < ncols
                 hideydecorations!(ax0)
@@ -173,21 +182,20 @@ function plot_superposition(
             yF = reduce(vcat, transpose.(solF.u))
             yy0 = reduce(vcat, transpose.(soly0.u))
             ycheck = yF .+ yy0
-            l0 = lines!(ax0, t, Fplot, label = L"$F(t)$", color = :gray)
+            # l0 = lines!(ax0, t, Fplot, label = L"$F(t)$", color = :gray)
             l1 = lines!(ax, sol.t, y[:, 1], label = L"$x_{1}(t)$")
             l2 = lines!(ax, solF.t, yF[:, 1], label = L"$x_{1}^{F}(t)$")
             l3 = lines!(ax, soly0.t, yy0[:, 1], label = L"$x_{1}^{g}(t)$")
             l4 = lines!(ax, t, ycheck[:, 1], label = L"$x_{1}^{F}(t) + x_{1}^{g}(t)$")
-            l5 = hlines!(ax, [2], color = :red, label = L"$x_{T} = 2$ m")
-            lins = [l0, l1, l2, l3, l4, l5]
+            l5 = hlines!(ax, [-2, 2], color = :red, label = L"$x_{T} = 2$ m")
+            lins = [l1, l2, l3, l4, l5]
             ylims!(ax, (-2.5, 2.5))
 
             if (i == nrows) & (j == ncols)
                 Legend(
                     fig[:, 4],
-                    [l0, l1, l2, l3, l4, l5],
+                    [l1, l2, l3, l4, l5],
                     [
-                        L"$F(t)$",
                         L"$x_{1}(t)$",
                         L"$x_{1}^{F}(t)$",
                         L"$x_{1}^{g}(t)$",

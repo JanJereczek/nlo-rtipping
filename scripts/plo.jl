@@ -1,18 +1,26 @@
+#################################################
+#################################################
+#################################################
+
+using DrWatson
+@quickactivate "nlo-rtipping"
+
 # Import packages.
 using DifferentialEquations,
-    LinearAlgebra, CairoMakie, Colors, Interpolations, Statistics, DrWatson, NLsolve;
+    LinearAlgebra, CairoMakie, Colors, Interpolations, Statistics, NLsolve;
 
 # Include self-written scripts.
 include(srcdir("utils.jl"))
 include(srcdir("forcing.jl"))
 include(srcdir("ews_plo.jl"))
 include(srcdir("plots_plo.jl"))
-include(srcdir("video_helper.jl"))
+include(srcdir("video_helper_plo.jl"))
 include(srcdir("mechanics_plo.jl"))
 include(srcdir("pwlinear_oscillator.jl"))
 
-# Parameter dictionnary of the nlo.
-p = load_highfreq_parameters()
+#################################################
+#################################################
+#################################################
 
 # Define plotting options.
 plot_characteristics_bool = false
@@ -29,6 +37,12 @@ framerate = 2                                       # [frame/second]
 prefixes = [plotsdir("tmp/"), plotsdir()]
 prefix = prefixes[1]
 
+p = load_highfreq_parameters()
+
+#################################################
+#################################################
+#################################################
+
 if plot_type == "single"
     prefix_anim = string(prefix, "Δx")
 else
@@ -41,12 +55,13 @@ if plot_type == "σ"
     prefix = string(prefix, "noisy_")
     p["fixed_dt"] = true
     p["dt"] = 1e-1                      # [s] SDE requires fixed time step (or more advanced concepts).
+    p["fixed_tend"] = true
 else
     p["noisy"] = false
     p["fixed_dt"] = false
+    p["fixed_tend"] = false
 end
 
-p["fixed_tend"] = false
 p["Δx"] = 0.6                           # Standard value if Δx not changed over looping.-
 
 # p["fixed_dt"] = true
@@ -65,7 +80,7 @@ elseif plot_type == "Δx"
 elseif plot_type == "D"
     title_func(x) = "D = $x"
     # D_vec = [1e-1, 2e-1, 5e-1, 1]    # Vector of sampled dampings.
-    D_vec = [1e-3, 5e-3, 1e-2, 5e-2]    # Vector of sampled dampings.
+    D_vec = [0.0, 1e-4, 1e-3, 1e-2]    # Vector of sampled dampings.
 elseif plot_type == "σ"
     title_func(x) = "σ = $x N"
     σ_vec = [0.25, 0.5]
@@ -80,6 +95,10 @@ if p["D"] < 1
         get_resonance_characteristics(p, ω_vec, res_threshold)
 end
 
+#################################################
+#################################################
+#################################################
+
 # Plot the characteristics
 if plot_characteristics_bool
     # Get characteristics of spring n°2.
@@ -88,12 +107,20 @@ if plot_characteristics_bool
     plot_characteristics(x₁_vec, c₂, ω_vec, amp_ω_resp, prefix, "ω")
 end
 
+#################################################
+#################################################
+#################################################
+
 # Get system bifurcation.
 if plot_bifportrait_bool
     Fbif = range(0, stop = 200, length = 2001)
     x_bassin_bound = get_bassin_boundary(p, 0.0)
     plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
 end
+
+#################################################
+#################################################
+#################################################
 
 # Sampled values of the tipping grid.
 nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
@@ -110,6 +137,10 @@ if plot_superposition_bool
     plot_superposition(Fvec, avec, Δx, p, solve_plo, solve_plo_F; Fapprox = Fvec[end])
 end
 
+#################################################
+#################################################
+#################################################
+
 sol_dict = Dict()
 if plot_tip_grid_bool
 
@@ -120,7 +151,7 @@ if plot_tip_grid_bool
 
     if plot_type == "single"
         plot_scatter(
-            get_scatter(Δx, plot_type, sss, solve_plo),
+            get_scatter(Δx, plot_type, sss, solve_plo_F),
             sss,
             grid_axs,
             grid_fig,
@@ -131,8 +162,8 @@ if plot_tip_grid_bool
     else
         if plot_type == "Δx"
             for Δx in Δx_vec
-                grid_dict[string(Δx)], sol_dict[string(Δx)] =
-                    get_scatter(Δx, plot_type, sss, solve_plo)
+                grid_dict[string(Δx)] =
+                    get_scatter(Δx, plot_type, sss, solve_plo_F)
             end
             plot_grid4(grid_dict, Δx_vec, prefix)
 
@@ -143,8 +174,8 @@ if plot_tip_grid_bool
                     Δx_vec;
                     framerate = framerate,
                 ) do Δx
-                    grid_dict[string(Δx)], sol_dict[string(Δx)] =
-                        get_scatter(Δx, plot_type, sss, solve_plo)
+                    grid_dict[string(Δx)] =
+                        get_scatter(Δx, plot_type, sss, solve_plo_F)
                     plot_scatter(
                         grid_dict[string(Δx)],
                         sss,
@@ -157,15 +188,15 @@ if plot_tip_grid_bool
             end
         elseif plot_type == "D"
             for D in D_vec
-                grid_dict[string(D)], sol_dict[string(D)] =
-                    get_scatter(D, plot_type, sss, solve_plo)
+                grid_dict[string(D)] =
+                    get_scatter(D, plot_type, sss, solve_plo_F)
             end
             plot_grid4(grid_dict, D_vec, prefix)
 
         elseif plot_type == "σ"
             for σ in σ_vec
-                grid_dict[string(σ)], sol_dict[string(σ)] =
-                    get_scatter(σ, plot_type, sss, solve_plo)
+                grid_dict[string(σ)] =
+                    get_scatter(σ, plot_type, sss, solve_plo_F)
             end
             plot_grid2(grid_dict, σ_vec, prefix)
         end

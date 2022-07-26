@@ -1,0 +1,1 @@
+- To get the similar oscillatory behaviour than Johannes when it comes to IC, we can simply set whatever damping is the one we want. Then create a circle with trigo function and add one or tweo more trigo to get the behaviour he gets! Then start from this IC.

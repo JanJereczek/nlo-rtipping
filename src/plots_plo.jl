@@ -92,7 +92,8 @@ end
 
 function plot_grid2(scatter_dict, node_vec, prefix)
     fig = Figure(resolution = (1500, 750), font = srcdir("cmunrm.ttf"), fontsize = 28)
-    pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
+    pws = [L"$10^{0}$", L"$10^{1}$", L"$10^{2}$"]
+    # pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
     for i = 1:2
         node = node_vec[i]
         x = scatter_dict[string(node)]
@@ -102,7 +103,7 @@ function plot_grid2(scatter_dict, node_vec, prefix)
             xlabel = L"$a$ [N/s]",
             ylabel = L"$F_{\max}$ [N]",
             xscale = log10,
-            xticks = (10.0 .^ (-2:3), pws),
+            xticks = (10.0 .^ (0:2), pws),
             yminorticks = IntervalsBetween(5),
             yminorgridvisible = true,
         )
@@ -112,13 +113,24 @@ function plot_grid2(scatter_dict, node_vec, prefix)
             x[1],
             color = x[3],
             colormap = :rainbow1,
-            colorrange = (1.25, 3.25),
+            colorrange = (0, 1),
+        )
+
+        contour!(
+            ax,
+            x[2],
+            x[1],
+            x[3],
+            color = :black,
+            levels = [0.5],
+            linewidth = 5,
         )
     end
+    
     Colorbar(
         fig[:, 3],
         colormap = :rainbow1,
-        colorrange = (1.25, 3.25),
+        colorrange = (0, 1),
         label = L"$x_{1}(t = t_{e})$ [m]",
     )
     save_fig(prefix, "grid2", "both", fig)

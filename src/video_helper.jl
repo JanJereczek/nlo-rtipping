@@ -22,6 +22,7 @@ function get_scatter(node, plot_type, sss, solve_ode)
     println("Getting results for x₀ = $x₀")
     sol_dict = Dict()
     t_buffer = 100
+    method = "last"     # can also use "mean"
 
     for a in sss.avec
         p["aF"] = a
@@ -40,12 +41,15 @@ function get_scatter(node, plot_type, sss, solve_ode)
             append!(a_scat, a)
 
             local sol = solve_ode(x₀, tspan, p)
-            sol_dict[string(Fmax, "  ", a)] = 0 # sol
-            # append!(x_scat, norm(last(sol), 2))
-            nend = 100
-            end_sol = sol(range(tend - t_buffer / 10, stop = tend, length = nend))
-            end_position = reverse([end_sol.u[end-i][1] for i = 0:nend-1])
-            append!(x_scat, abs(mean(end_position)))
+            # sol_dict[string(Fmax, "  ", a)] = 0 # sol
+            if method == "last"
+                append!(x_scat, norm(last(sol), 2))
+            else
+                nend = 100
+                end_sol = sol(range(tend - t_buffer / 10, stop = tend, length = nend))
+                end_position = reverse([end_sol.u[end-i][1] for i = 0:nend-1])
+                append!(x_scat, abs(mean(end_position)))
+            end
         end
     end
     return [Fmax_scat, a_scat, x_scat], sol_dict
