@@ -38,7 +38,7 @@ prefix = prefixes[1]
 
 p = load_parameters()
 # p["μ"] = 0.02
-p["μ"] = 0.2
+p["μ"] = 0.5
 
 if plot_stream
     fig = Figure(resolution = (1200, 1200), font = srcdir("cmunrm.ttf"), fontsize = 20)

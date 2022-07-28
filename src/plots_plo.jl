@@ -90,50 +90,66 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
     lines!(axs[4], sol[1, :], sol[2, :], label = line_label)
 end
 
-function plot_grid2(scatter_dict, node_vec, prefix)
-    fig = Figure(resolution = (1500, 750), font = srcdir("cmunrm.ttf"), fontsize = 28)
+function plot_stochastic_grid(scatter_dict, node_vec, prefix)
+    fig = Figure(resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize = 28)
     pws = [L"$10^{0}$", L"$10^{1}$", L"$10^{2}$"]
-    # pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
-    for i = 1:2
-        node = node_vec[i]
+    nrows, ncols = 2, 2
+    for i in 1:nrows, j in 1:ncols
+        k = (i - 1) * ncols + j
+        node = node_vec[k]
         x = scatter_dict[string(node)]
         ax = Axis(
-            fig[1, i][1, 1],
+            fig[i, j][1, 1],
             title = L"$\sigma =$ %$(string(node)) N",
-            xlabel = L"$a$ [N/s]",
-            ylabel = L"$F_{\max}$ [N]",
+            xlabel = (i == nrows ? L"$a$ [N/s]" : " "),
+            ylabel = (j == 1 ? L"$F_{\max}$ [N]" : " "),
             xscale = log10,
-            xticks = (10.0 .^ (0:2), pws),
+            xticks = ( i == nrows ? (10.0 .^ (0:2), pws) : ([], []) ),
+            yticks = ( j == 1 ? Makie.automatic : ([], []) ),
             yminorticks = IntervalsBetween(5),
             yminorgridvisible = true,
         )
-        hm = scatter!(
-            ax,
-            x[2],
-            x[1],
-            color = x[3],
-            colormap = :rainbow1,
-            colorrange = (0, 1),
-        )
 
-        contour!(
-            ax,
-            x[2],
-            x[1],
-            x[3],
-            color = :black,
-            levels = [0.5],
-            linewidth = 5,
-        )
+        scatter_bool = true
+        if scatter_bool
+            hm = scatter!(
+                ax,
+                x[2],
+                x[1],
+                color = x[3],
+                colormap = :rainbow1,
+                colorrange = (0, 1),
+            )
+
+            contour!(
+                ax,
+                x[2],
+                x[1],
+                x[3],
+                color = :black,
+                levels = [0.5],
+                linewidth = 5,
+            )
+        else
+            hm = contourf!(
+                ax,
+                x[2],
+                x[1],
+                x[3],
+                colormap = :rainbow1,
+                levels = -.1:.1:1.1,
+            )
+        end
     end
     
     Colorbar(
-        fig[:, 3],
+        fig[:, ncols + 1],
         colormap = :rainbow1,
         colorrange = (0, 1),
         label = L"$x_{1}(t = t_{e})$ [m]",
+        height = Relative( .5 ),
     )
-    save_fig(prefix, "grid2", "both", fig)
+    save_fig(prefix, "stochastic_grid", "both", fig)
 end
 
 function plot_grid4(scatter_dict, node_vec, prefix)

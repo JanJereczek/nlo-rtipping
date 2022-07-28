@@ -9,7 +9,7 @@ using DrWatson
 using CairoMakie, Colors, ProgressMeter;
 using DifferentialEquations;
 using LinearAlgebra, Interpolations, Statistics, NLsolve;
-using .Threads, BenchmarkTools;
+using .Threads, BenchmarkTools, JLD2;
 
 # Include self-written scripts.
 include(srcdir("utils.jl"))
@@ -28,6 +28,7 @@ include(srcdir("stochastic_ensemble.jl"))
 plot_characteristics_bool = false
 plot_bifportrait_bool = false
 plot_superposition_bool = false
+compute_grid_bool = true
 plot_tip_grid_bool = true
 
 plot_type = "σ"
@@ -36,14 +37,12 @@ prefix = plotsdir("plo/stochastic/")
 p = load_parameters()
 p["noisy"] = true
 p["fixed_dt"] = true
-p["dt"] = 1e-1
+p["dt"] = 1e-2
 p["fixed_tend"] = true
+p["t_buffer"] = 10
 p["Δx"] = 0.6
 p["F_type"] = "ramp"
-
-σ_vec = [0.25, 0.5]
-# σ_vec = [0., 0.]
-title_func(x) = "σ = $x N"
+σ_vec = [1, 2, 5, 10]
 
 #################################################
 #################################################
@@ -67,13 +66,18 @@ end
 #################################################
 #################################################
 
-sol_dict = Dict()
 grid_dict = Dict()
-grid_fig = Figure(resolution = (1500, 1000), fontsize = 18)
-grid_axs = init_grid_axs(grid_fig)
+nm = 1
+grid_file = string("stochastic_grid_tbuffer", p["t_buffer"], "_dt", p["dt"], "_nm", nm, ".jld2")
 
-for σ in σ_vec
-    grid_dict[string(σ)] = threaded_stochastic_scatter(σ, sss, solve_plo, 100)
+if compute_grid_bool
+    for σ in σ_vec
+        grid_dict[string(σ)] = threaded_stochastic_scatter(σ, sss, solve_plo, nm)
+    end
+    jldsave(datadir(grid_file); grid_dict)
 end
 
-plot_grid2(grid_dict, σ_vec, prefix)
+if plot_tip_grid_bool
+    JLD2.load( datadir(grid_file) )
+    plot_stochastic_grid(grid_dict, σ_vec, prefix)
+end

@@ -80,7 +80,7 @@ end
 function solve_plo(x₀, tspan, p)
     ivp = ODEProblem(forced_pwlin_oscillator, x₀, tspan, p)
     if p["fixed_dt"]
-        return solve(ivp, dt = p["dt"], adaptive = false)
+        return solve(ivp, BS3(), dt = p["dt"], adaptive = false)
     else
         return solve(ivp, dense = true)
     end
