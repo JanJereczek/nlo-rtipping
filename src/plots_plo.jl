@@ -7,8 +7,8 @@ function plot_equil_control(p, prefix)
     u = reduce(vcat, transpose.(sol.u))
 
     fig = Figure(resolution = (400, 800), fontsize = 14)
-    ax1 = Axis(fig[1, 1], ylabel = L"$F(t)$ [N]")
-    ax2 = Axis(fig[2, 1], xlabel = L"$t$ [s]", ylabel = L"$x$ [m]")
+    ax1 = Axis(fig[1, 1], ylabel = L"$F(t)$ (N)")
+    ax2 = Axis(fig[2, 1], xlabel = L"$t$ (s)", ylabel = L"$x$ (m)")
 
     lines!(ax1, sol.t, get_F.(sol.t))
     lines!(ax2, sol.t, u[:, 1])
@@ -29,7 +29,7 @@ function plot_characteristics(x₁_vec, c₂, f_vec, amp_resp, prefix, mode)
     ax1 = Axis(
         fig[1, 1],
         title = "Characteristic curve of spring n°2",
-        xlabel = L"$x$ [m]",
+        xlabel = L"$x$ (m)",
         ylabel = L"$c_{2}(x)$ [kg/s²]",
     )
 
@@ -51,12 +51,12 @@ end
 
 function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
     fig = Figure(resolution = (1200, 500), font = srcdir("cmunrm.ttf"), fontsize = 20)
-    ax1 = Axis(fig[1, 1], xlabel = L"$\tilde{F} + mg$ [N]", ylabel = L"$\tilde{x}$ [m]")
-    lines!(ax1, Fbif, branch_xeq1.(Fbif), label = L"$\tilde{x}_{-}$ [m]")
-    lines!(ax1, Fbif, branch_xeq2.(Fbif), label = L"$\tilde{x}_{+}$ [m]")
+    ax1 = Axis(fig[1, 1], xlabel = L"$\tilde{F} + mg$ (N)", ylabel = L"$\tilde{x}$ (m)")
+    lines!(ax1, Fbif, branch_xeq1.(Fbif), label = L"$\tilde{x}_{-}$ (m)")
+    lines!(ax1, Fbif, branch_xeq2.(Fbif), label = L"$\tilde{x}_{+}$ (m)")
     axislegend(ax1, merge = true, nbanks = 2, position = :lt)
 
-    ax2 = Axis(fig[1, 2][1, 1], xlabel = L"$x_{1}$ [m]", ylabel = L"$x_{2}$ [m/s]")
+    ax2 = Axis(fig[1, 2][1, 1], xlabel = L"$x_{1}$ (m)", ylabel = L"$x_{2}$ [m/s]")
 
     streamplot!(ax2, pwlin_oscillator_stream, -1 .. 3, -8 .. 5, gridsize = (32, 32))
     lines!(ax2, x_bassin_bound[1, :], x_bassin_bound[2, :], linewidth = 3, color = :red)
@@ -73,8 +73,8 @@ end
 function init_grid_axs(fig)
     ax = Axis(
         fig[1, 1][1, 1],
-        ylabel = L"$F_{\max}$ [N]",
-        xlabel = L"$a$ [N/s]",
+        ylabel = L"$F_{\max}$ (N)",
+        xlabel = L"$a$ (N/s)",
         xscale = log10,
     )
     return ax
@@ -91,7 +91,7 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
 end
 
 function plot_stochastic_grid(scatter_dict, node_vec, prefix)
-    fig = Figure(resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    fig = Figure(resolution = (1500, 1000), font = srcdir("cmunrm.ttf"), fontsize = 28)
     pws = [L"$10^{0}$", L"$10^{1}$", L"$10^{2}$"]
     nrows, ncols = 2, 2
     for i in 1:nrows, j in 1:ncols
@@ -101,13 +101,17 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
         ax = Axis(
             fig[i, j][1, 1],
             title = L"$\sigma =$ %$(string(node)) N",
-            xlabel = (i == nrows ? L"$a$ [N/s]" : " "),
-            ylabel = (j == 1 ? L"$F_{\max}$ [N]" : " "),
+            xlabel = (i == nrows ? L"$a$ (N/s)" : " "),
+            ylabel = (j == 1 ? L"$F_{\max}$ (N)" : " "),
             xscale = log10,
-            xticks = ( i == nrows ? (10.0 .^ (0:2), pws) : ([], []) ),
-            yticks = ( j == 1 ? Makie.automatic : ([], []) ),
+            xaxisposition = (i == 1 ? :top : :bottom),
+            yaxisposition = (j == 1 ? :left : :right),
+            xticks = (10.0 .^ (0:2), pws),
+            xticklabelsvisible = (i == nrows ? true : false),
+            yticklabelsvisible = (j == 1 ? true : false),
             yminorticks = IntervalsBetween(5),
             yminorgridvisible = true,
+            xminorgridvisible = true,
         )
 
         scatter_bool = true
@@ -119,6 +123,7 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
                 color = x[3],
                 colormap = :rainbow1,
                 colorrange = (0, 1),
+                markersize = 5,
             )
 
             contour!(
@@ -128,7 +133,7 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
                 x[3],
                 color = :black,
                 levels = [0.5],
-                linewidth = 5,
+                linewidth = 2,
             )
         else
             hm = contourf!(
@@ -146,61 +151,72 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
         fig[:, ncols + 1],
         colormap = :rainbow1,
         colorrange = (0, 1),
-        label = L"$x_{1}(t = t_{e})$ [m]",
+        label = L"$x_{1}(t = t_{e})$ (m)",
         height = Relative( .5 ),
     )
     save_fig(prefix, "stochastic_grid", "both", fig)
 end
 
 function plot_grid4(scatter_dict, node_vec, prefix)
-    fig = Figure(resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    fig = Figure(resolution = (1500, 1000), font = srcdir("cmunrm.ttf"), fontsize = 28)
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
-    # title = L"$\Delta x_{1} =$ %$(string(Δx)) m",
-    for i = 1:2
-        for j = 1:2
-            l = (i - 1) * 2 + j
-            node = node_vec[l]
-            x = scatter_dict[string(node)]
-            ax = Axis(
-                fig[i, j][1, 1],
-                title = L"$\,$ %$(string(node))",
-                xlabel = L"$a$ [N/s]",
-                # xlabel = (i == 1 ? L"$\hat{t}$ [s]" : L"$a$ [N/s]"),
-                ylabel = L"$F_{\max}$ [N]",
-                xscale = log10,
-                xaxisposition = (i == 1 ? :top : :bottom),
-                yaxisposition = (j == 1 ? :left : :right),
-                xticks = (10.0 .^ (-2:3), pws),
-                yminorticks = IntervalsBetween(5),
-                yminorgridvisible = true,
-            )
-            hm = scatter!(
-                ax,
-                x[2],
-                x[1],
-                color = x[3],
-                colormap = :rainbow1,
-                colorrange = (1.25, 3.25),
-            )
-            ct = contour!(
-                ax,
-                x[2],
-                x[1],
-                x[3],
-                color = :black,
-                levels = [2.25, 2.26],
-                linewidth = 5,
-            )
-        end
+    nrows, ncols = 2, 2
+    clims = (1.25, 3.25)
+    for i in 1:nrows, j in 1:ncols
+        k = (i - 1) * ncols + j
+        node = node_vec[k]
+        x = scatter_dict[string(node)]
+        rnode = round(node; digits = 3 )
+        title_dict = Dict( 
+            "Δx" => L"$\Delta x_{1} = %$(string( rnode )) \, $m",
+            "D"  => L"$D = %$(string( rnode )) $",
+        )
+        ax = Axis(
+            fig[i, j][1, 1],
+            title = title_dict[plot_type],
+            xlabel = (i == nrows ? L"$a$ (N/s)" : " "),
+            ylabel = (j == 1 ? L"$F_{\max}$ (N)" : " "),
+            xscale = log10,
+            xaxisposition = (i == 1 ? :top : :bottom),
+            yaxisposition = (j == 1 ? :left : :right),
+            xticks = (10.0 .^ (-2:3), pws),
+            xticklabelsvisible = (i == nrows ? true : false),
+            yticklabelsvisible = (j == 1 ? true : false),
+            yminorticks = IntervalsBetween(5),
+            yminorgridvisible = true,
+            xminorgridvisible = true,
+        )
+
+        hm = scatter!(
+            ax,
+            x[2],
+            x[1],
+            color = x[3],
+            colormap = :rainbow1,
+            colorrange = clims,
+            markersize = 5,
+        )
+        ct = contour!(
+            ax,
+            x[2],
+            x[1],
+            x[3],
+            color = :black,
+            levels = [2.25, 2.26],
+            linewidth = 2,
+        )
     end
     Colorbar(
-        fig[:, 3],
+        fig[:, ncols + 1],
         colormap = :rainbow1,
-        colorrange = (1.25, 3.25),
-        height = Relative(1 / 2),
-        label = L"$x_{1}(t = t_{e})$ [m]",
+        colorrange = clims,
+        label = L"$x_{1}(t = t_{e})$ (m)",
+        height = Relative( .5 ),
+        highclip = :red,
+        lowclip = :purple,
     )
-    save_fig(prefix, "grid4", "both", fig)
+
+    save_fig(prefix, string( plot_type, "_grid4" ), "both", fig)
 end
 
 
@@ -235,8 +251,8 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
             ax = Axis(
                 fig[i, j],
                 title = string("Experiment ", k),
-                xlabel = (i == nrows ? L"$t$ [s]" : ""),
-                ylabel = (j == 1 ? L"$x_{1}$ [m]" : ""),
+                xlabel = (i == nrows ? L"$t$ (s)" : ""),
+                ylabel = (j == 1 ? L"$x_{1}$ (m)" : ""),
                 xminorticks = IntervalsBetween(5),
                 xminorgridvisible = true,
                 yminorticks = IntervalsBetween(5),
@@ -244,7 +260,7 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
             )
             ax0 = Axis(
                 fig[i, j],
-                ylabel = (j == 3 ? L"$F$ [N]" : ""),
+                ylabel = (j == 3 ? L"$F$ (N)" : ""),
                 ylabelcolor = :gray,
                 yticklabelcolor = :gray,
                 yaxisposition = :right,
@@ -295,4 +311,35 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
         end
     end
     save_fig(prefix, "superposition", "both", fig)
+end
+
+
+
+function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
+
+    if cb == "fixed_cb"
+        hm1 = scatter!(
+            grid_axs[1],
+            x[2],
+            x[1],
+            color = x[3],
+            colormap = sss.cb_maps[1],
+            colorrange = sss.cb_limits[1],
+        )
+        hm2 = scatter!(
+            grid_axs[2],
+            x[2],
+            x[1],
+            color = x[4]["1"],              # Only plot γ₁ (or any other γ you wish)
+            colormap = sss.cb_maps[2],
+            colorrange = sss.cb_limits[2],
+        )
+    elseif cb == "adaptive_cb"
+        hm1 = scatter!(grid_axs[1], x[2], x[1], color = x[4], colormap = sss.cb_maps[1])
+        hm2 = scatter!(grid_axs[2], x[2], x[1], color = x[3], colormap = sss.cb_maps[2])
+    end
+
+    Colorbar(grid_fig[1, 1][1, 2], hm1)
+    Colorbar(grid_fig[1, 2][1, 2], hm2)
+    save_fig(prefix_anim, "=$node", "both", grid_fig)
 end

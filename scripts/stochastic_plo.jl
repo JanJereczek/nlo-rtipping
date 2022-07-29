@@ -28,7 +28,7 @@ include(srcdir("stochastic_ensemble.jl"))
 plot_characteristics_bool = false
 plot_bifportrait_bool = false
 plot_superposition_bool = false
-compute_grid_bool = true
+compute_grid_bool = false
 plot_tip_grid_bool = true
 
 plot_type = "σ"
@@ -67,7 +67,7 @@ end
 #################################################
 
 grid_dict = Dict()
-nm = 1
+nm = 100
 grid_file = string("stochastic_grid_tbuffer", p["t_buffer"], "_dt", p["dt"], "_nm", nm, ".jld2")
 
 if compute_grid_bool
@@ -78,6 +78,6 @@ if compute_grid_bool
 end
 
 if plot_tip_grid_bool
-    JLD2.load( datadir(grid_file) )
+    grid_dict = JLD2.load( datadir(grid_file), "grid_dict" )
     plot_stochastic_grid(grid_dict, σ_vec, prefix)
 end

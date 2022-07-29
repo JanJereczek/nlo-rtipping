@@ -59,14 +59,16 @@ function get_resonance_characteristics(p::Dict, ω_vec::Vector, res_threshold::F
     ω_res_char = [ω1_res, ω_res, ω2_res]
     f_res_char = ω2f(ω_res_char)
     bound_msg = " - lower bound, peak and upper bound: "
-    println(string("Resonance freq (rad/s)", bound_msg), ω1_res, "  ", ω_res, "  ", ω2_res)
+    println(string("Resonance freq (rad/s)", bound_msg),
+            round(ω1_res; digits=3), "  ",
+            round(ω_res; digits=3), "  ", 
+            round(ω2_res; digits=3),
+    )
     println(
         string("Resonance freq (Hz)", bound_msg),
-        f_res_char[1],
-        "  ",
-        f_res_char[2],
-        "  ",
-        f_res_char[3],
+        round(f_res_char[1]; digits=3), "  ",
+        round(f_res_char[2]; digits=3), "  ",
+        round(f_res_char[3]; digits=3),
     )
 
     return get_ω_ampresp, get_f_ampresp, amp_ω_resp, ω_res_char, f_res_char
