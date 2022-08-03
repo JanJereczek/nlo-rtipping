@@ -13,20 +13,20 @@ end
 
 # 1st-order reformulation derived and double-checked with wikipedia.
 function vdP(u, p, t)
+    # unstable limit cycle --> negative sign.
+    du1 = -( u[2] )
+    du2 = -( p["μ"] * (1 - u[1]^2) * u[2] - u[1] )
+    return [du1, du2]
+end
+
+function forced_vdP(u, p, t)
     # avoid runaway, as vdP unstable.
     if norm(u, 2) > 10.0
         return [0.0, 0.0]
     else
-        # unstable limit cycle --> negative sign.
-        du1 = -( u[2] )
-        du2 = -( p["μ"] * (1 - u[1]^2) * u[2] - u[1] )
-        return [du1, du2]
+        F = get_F(t)
+        return vdP(u, p, t) - F .* [0, 1]
     end
-end
-
-function forced_vdP(u, p, t)
-    F = get_F(t)
-    return vdP(u, p, t) - F .* [0, 1]
 end
 
 constant_forced_vdP(u, p, t) = vdP(u, p, t) - p["F₀"] .* [0, 1]

@@ -6,7 +6,7 @@ using DrWatson
 @quickactivate "nlo-rtipping"
 
 # Import packages.
-using DifferentialEquations, LinearAlgebra, NLsolve
+using DifferentialEquations, LinearAlgebra, NLsolve, ProgressMeter
 using CairoMakie, Colors, Interpolations, Statistics, JLD2
 
 # Include self-written scripts.
@@ -14,8 +14,8 @@ include(srcdir("utils.jl"))
 include(srcdir("forcing.jl"))
 include(srcdir("plots_plo.jl"))
 include(srcdir("mechanics_plo.jl"))
+include(srcdir("integrate_tipgrid.jl"))
 include(srcdir("pwlinear_oscillator.jl"))
-include(srcdir("integrate_tipgrid_plo.jl"))
 
 #################################################
 #################################################
@@ -29,20 +29,27 @@ plot_tip_grid_bool = true
 
 # Decide whether animation should be created or not.
 selector = 1                        # Selector for case difference.
-plot_types = ["Δx", "D"]            # Slicing over IC or damping ratio...
+plot_types = ["Δx", "D", "σ"]       # Slicing over IC or damping ratio...
 plot_type = plot_types[selector]    # Choose which of both.
-framerate = 2                       # [frame/second]
 
 # Define saving options.
 prefixes = [plotsdir("tmp/"), plotsdir()]
 prefix = prefixes[1]
 
-p = ( selector == 1 ? load_parameters() : load_highfreq_parameters() )
-p["noisy"] = false
-p["fixed_dt"] = false
-p["fixed_tend"] = false
+p = ( selector == 2 ? load_highfreq_parameters() : load_parameters() )
+if plot_type == "σ"
+    p["noisy"] = true
+    p["fixed_dt"] = true
+    p["fixed_tend"] = true
+    p["dt"] = 1e-2
+else
+    p["noisy"] = false
+    p["fixed_dt"] = false
+    p["fixed_tend"] = false
+end
+p["t_buffer"] = ( selector == 2 ? 50. : 10. )
 p["F_type"] = "ramp"
-p["Δx"] = 0.0                           # Standard value if Δx not changed over looping.
+p["Δx"] = 0.1
 Δx = p["Δx"]
 println(p["D"])
 
@@ -50,21 +57,11 @@ println(p["D"])
 #################################################
 #################################################
 
-prefix_anim = string(prefix, "animations/", plot_type)
-
-if plot_type == "Δx"
-    title_func(x) = "Δx = $x m"
-    Δx_vec = [0, 0.3, 0.6, 0.9]
-
-    # In case we want to generate an animation:
-    gen_anim = false
-    Δx_vec_anim = range(0, stop = 1.0, step = 0.1)    # Vector of sampled initial conditions.
-
-elseif plot_type == "D"
-    title_func(x) = "D = $x"
-    # D_vec = [1e-1, 2e-1, 5e-1, 1]    # Vector of sampled dampings.
-    D_vec = [1f-2, 1f-1, 5f-1, 1f0]    # Vector of sampled dampings.
-end
+Δx_vec = [0, 0.3, 0.6, 0.9]
+D_vec = [1e-2, 1e-1, 5e-1, 1e0]
+σ_vec = [ 1., 2., 5., 10. ]
+node_vecs = [ Δx_vec, D_vec, σ_vec ]
+node_vec = node_vecs[selector]
 
 # If D > 1 the equation has a singularity.
 if p["D"] < 1
@@ -101,25 +98,31 @@ end
 #################################################
 #################################################
 
-# Sampled values of the tipping grid.
-nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
-# a_llim, a_ulim = -2, 3                 # Range of sampled slopes.
-a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
-F_llim, F_ulim = -15, 2                 # linscale with ref = F_crit
+if plot_type == "σ"
+    nF, na = 20, 20                         # Number of points sampled in the ramp-parameter space.
+    a_llim, a_ulim = 0, 2                   # Range of sampled slopes.
+    F_llim, F_ulim = -7, 2                  # linscale with ref = F_crit
+elseif plot_type == "Δx"
+    nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
+    a_llim, a_ulim = -2, 3                  # Range of sampled slopes.
+    F_llim, F_ulim = -15, 2                 # linscale with ref = F_crit.
+else
+    nF, na = 50, 50                         # Number of points sampled in the ramp-parameter space.
+    a_llim, a_ulim = 0, 3                   # Range of sampled slopes.
+    F_llim, F_ulim = -15, 2                  # linscale with ref = F_crit.
+end
 Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
 sss = SlicedScatterStructs(avec, Fvec)
 
 # Plot the superposed solutions.
 if plot_superposition_bool
-    plot_superposition(Fvec, avec, Δx, p, solve_plo, solve_plo_F; Fapprox = Fvec[end])
+    plot_superposition(Fvec, avec, Δx, p, solve_plo, solve_plo_F; Fapprox = 45)
 end
 
 #################################################
 #################################################
 #################################################
-node_vecs = [Δx_vec, D_vec]
-node_vec = node_vecs[selector]
 
 if plot_tip_grid_bool
     # Dictionaries to store solutions for tipping grid.
@@ -131,5 +134,18 @@ if plot_tip_grid_bool
     plot_grid4(grid_dict, node_vec, prefix)
 end
 
-grid_file = string("grid4_", plot_type)
+grid_file = string("grid4_", plot_type, ".jld2")
 jldsave(datadir(grid_file); grid_dict)
+
+# for i in 1:10
+#     nprefix = string(prefix, i)
+#     if plot_tip_grid_bool
+#         # Dictionaries to store solutions for tipping grid.
+#         grid_dict = Dict()
+#         sol_dict = Dict()
+#         for node in node_vec
+#             get_scatter!(node, plot_type, sss, solve_plo, grid_dict, sol_dict)
+#         end
+#         plot_grid4(grid_dict, node_vec, nprefix)
+#     end
+# end

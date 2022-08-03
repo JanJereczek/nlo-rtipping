@@ -38,6 +38,7 @@ function load_highfreq_parameters()
 
     p = load_parameters()
     p["m"] = 1.0            # [kg] mass of oscillator.
+    # p["xₜ"] = 0.15           # [m] tipping displacement.
     p["d"] = 1.0            # [kg/s] dampening factor. Criteria for non-oscillating behavior: d > 2*sqrt(m*c)
     p = compute_parameters(p)
     return p

@@ -17,8 +17,8 @@ include(srcdir("forcing.jl"))
 include(srcdir("plots_plo.jl"))
 include(srcdir("video_helper.jl"))
 include(srcdir("mechanics_plo.jl"))
+include(srcdir("integrate_tipgrid.jl"))
 include(srcdir("pwlinear_oscillator.jl"))
-include(srcdir("stochastic_ensemble.jl"))
 
 #################################################
 #################################################

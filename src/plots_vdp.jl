@@ -55,57 +55,60 @@ function plot_grid2(scatter_dict, node_vec, prefix)
     save_fig(prefix, "grid2", "both", fig)
 end
 
-function plot_grid4(scatter_dict, node_vec, prefix)
-    fig = Figure(resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize = 28)
+function plot_grid_vdp(scatter_dict, node_vec, prefix)
+    fig = Figure(resolution = (1500, 500), font = srcdir("cmunrm.ttf"), fontsize = 28)
     pws = [L"$10^{-3}$", L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$"]
-    # title = L"$\Delta x_{1} =$ %$(string(Δx)) m",
-    for i = 1:2
-        for j = 1:2
-            l = (i - 1) * 2 + j
-            node = node_vec[l]
-            x = scatter_dict[string(node)]
-            ax = Axis(
-                fig[i, j][1, 1],
-                title = L"$\Delta x = $ %$(string(node))",
-                xlabel = (i == 1 ? " " : L"$a$ ") ,
-                # xlabel = (i == 1 ? L"$\hat{t}$ [s]" : L"$a$ [N/s]"),
-                ylabel = (j == 1 ? L"$F_{\max}$ " : " "),
-                xscale = log10,
-                xaxisposition = (i == 1 ? :top : :bottom),
-                yaxisposition = (j == 1 ? :left : :right),
-                xticks = (10.0 .^ (-3:1), pws),
-                yminorticks = IntervalsBetween(5),
-                yminorgridvisible = true,
-            )
-            hm = scatter!(
-                ax,
-                x[2],
-                x[1],
-                color = x[3],
-                colormap = :rainbow1,
-                colorrange = (p["F_crit"] + F_llim, 3),
-            )
-            contour!(
-                ax,
-                x[2],
-                x[1],
-                x[3],
-                color = :black,
-                levels = [8],
-                linewidth = 5,
-            )
-        end
+    for i in eachindex(node_vec)
+        node = node_vec[i]
+        x = scatter_dict[string(node)]
+        titles = [
+            L"$\Delta x = $ %$(string(node))",
+            L"$\mu = $ %$(string(node))",
+        ]
+        ax = Axis(
+            fig[1, i][1, 1],
+            title = titles[selector],
+            xlabel = L"$a$ ",
+            ylabel = (i == 1 ? L"$F_{\max}$ " : " "),
+            xscale = log10,
+            xaxisposition = :bottom,
+            yaxisposition = :left ,
+            xticks = (10.0 .^ (-3:1), pws),
+            yminorticks = IntervalsBetween(5),
+            yminorgridvisible = true,
+            yticklabelsvisible = (i == 1 ? true : false),
+        )
+        hm = scatter!(
+            ax,
+            x[2],
+            x[1],
+            color = x[3],
+            colormap = :rainbow1,
+            highclip = cgrad(:rainbow1)[end],
+            lowclip = cgrad(:rainbow1)[1],
+            colorrange = (p["F_crit"] + F_llim, 3),
+            markersize = 5,
+        )
+        contour!(
+            ax,
+            x[2],
+            x[1],
+            x[3],
+            color = :black,
+            levels = [3],
+            linewidth = 2,
+        )
     end
     Colorbar(
-        fig[:, 3],
+        fig[:, 4],
         colormap = :rainbow1,
         colorrange = (p["F_crit"] + F_llim, 3),
-        height = Relative( 1/2 ),
-        highclip = :red,
-        lowclip = :purple,
+        height = Relative( .8 ),
+        highclip = cgrad(:rainbow1)[end],
+        lowclip = cgrad(:rainbow1)[1],
         label = L"$|| x(t = t_{e}) ||$",
     )
-    save_fig(prefix, "grid4", "both", fig)
+    save_fig(prefix, "_grid", "both", fig)
 end
 
 function plot_superposition(
@@ -207,4 +210,28 @@ function plot_superposition(
         end
     end
     save_fig(prefix, "superposition", "both", fig)
+end
+
+function plot_stream_vdp(Fconst_vec, x1bnds, x2bnds)
+    fig = Figure(resolution = (1200, 1200), font = srcdir("cmunrm.ttf"), fontsize = 20)
+    nrows, ncols = 2, 2
+    axs = []
+    for i in 1:nrows, j in 1:ncols
+        k = j + (i-1)*ncols
+        local ax = Axis(
+            fig[i, j],
+            xlabel = L"$x_{1}$ [m]",
+            ylabel = L"$x_{2}$ [m/s]",
+            title = string("F=", Fconst_vec[k]),
+        )
+        streamF(u) = forced_vdP_stream( u, Fconst_vec[k] )
+        sp = streamplot!(
+            ax,
+            streamF,
+            x1bnds[k][1] .. x1bnds[k][2],
+            x2bnds[k][1] .. x2bnds[k][2],
+            gridsize = (40, 40),
+        )
+    end
+    save_fig(plotsdir("vdp/"), "stream", "both", fig)
 end

@@ -158,7 +158,7 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
 end
 
 function plot_grid4(scatter_dict, node_vec, prefix)
-    fig = Figure(resolution = (1500, 1000), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    fig = Figure(resolution = (1500, 1200), font = srcdir("cmunrm.ttf"), fontsize = 28)
     pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
     nrows, ncols = 2, 2
     clims = (1.25, 3.25)
@@ -170,6 +170,7 @@ function plot_grid4(scatter_dict, node_vec, prefix)
         title_dict = Dict( 
             "Δx" => L"$\Delta x_{1} = %$(string( rnode )) \, $m",
             "D"  => L"$D = %$(string( rnode )) $",
+            "σ"  => L"$\sigma = %$(string( rnode )) \,$N",
         )
         ax = Axis(
             fig[i, j][1, 1],
@@ -224,13 +225,13 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
     nrows = 2
     ncols = 3
 
-    fig = Figure(resolution = (1500, 800), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    fig = Figure(resolution = (1500, 900), font = srcdir("cmunrm.ttf"), fontsize = 28)
     ia = 31
     Fmax = Fvec[isapprox.(Fvec, Fapprox; atol = 1e-1)][1]
     x₀ = get_x₀(p, Δx)
     tend = 10
     tspan = (0, tend)
-    t = range(tspan[1], stop = tspan[2], step = 0.1)
+    t = range(tspan[1], stop = tspan[2], step = 0.01)
 
     for i = 1:nrows
         for j = 1:ncols
@@ -239,13 +240,14 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
             p["Fmax"] = Fmax
             p["t₂"] = p["t₁"] + p["Fmax"] / p["aF"]
             Fplot = get_Fvec(t)
-            local sol = solve_nlo_F(x₀, tspan, p)
+            local sol = solve_plo(x₀, tspan, p)
+            local sol = sol(t)
 
-            local solF_ = solve_nlo_F([0.0, 0.0], tspan, p)
+            local solF_ = solve_plo_F([0.0, 0.0], tspan, p)
             local solF = solF_(t)
 
             p["aF"] = 0
-            local soly0_ = solve_nlo(x₀, tspan, p)
+            local soly0_ = solve_plo(x₀, tspan, p)
             local soly0 = soly0_(t)
 
             ax = Axis(
@@ -286,17 +288,17 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
             yy0 = reduce(vcat, transpose.(soly0.u))
             ycheck = yF .+ yy0
             l0 = lines!(ax0, t, Fplot, label = L"$F(t)$", color = :gray)
-            l1 = lines!(ax, sol.t, y[:, 1], label = L"$x_{1}(t)$")
+            l1 = lines!(ax, sol.t, y[:, 1], label = L"$x_{1}(t)$", color = :gray10)
             l2 = lines!(ax, solF.t, yF[:, 1], label = L"$x_{1}^{F}(t)$")
-            l3 = lines!(ax, soly0.t, yy0[:, 1], label = L"$x_{1}^{g}(t)$")
-            l4 = lines!(ax, t, ycheck[:, 1], label = L"$x_{1}^{F}(t) + x_{1}^{g}(t)$")
+            l3 = lines!(ax, soly0.t, yy0[:, 1], label = L"$x_{1}^{g}(t)$", color = :green)
+            l4 = lines!(ax, t, ycheck[:, 1], linestyle = :dash, label = L"$x_{1}^{F}(t) + x_{1}^{g}(t)$", color = :orange, linewidth = 2)
             l5 = hlines!(ax, [p["xₜ"]], color = :red, label = L"$x_{T} = 1.5$ m")
             lins = [l0, l1, l2, l3, l4, l5]
             ylims!(ax, (0, 1.6))
             ylims!(ax0, (0, 160))
             if (i == nrows) & (j == ncols)
                 Legend(
-                    fig[:, 4],
+                    fig[3, :],
                     [l0, l1, l2, l3, l4, l5],
                     [
                         L"$F(t)$",
@@ -306,14 +308,15 @@ function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox 
                         L"$x_{1}^{F}(t) + x_{1}^{g}(t)$",
                         L"$x_{T} = 1.5$ m",
                     ],
+                    orientation = :horizontal,
+                    width = Relative(.8),
+                    colgap = 80,
                 )
             end
         end
     end
     save_fig(prefix, "superposition", "both", fig)
 end
-
-
 
 function plot_scatter(x, sss, grid_axs, grid_fig, node, prefix_anim, cb)
 
