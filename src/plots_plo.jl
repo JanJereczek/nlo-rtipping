@@ -221,6 +221,71 @@ function plot_grid4(scatter_dict, node_vec, prefix)
 end
 
 
+function plot_grid3(scatter_dict, node_vec, prefix)
+    fig = Figure(resolution = (1500, 700), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    pws = [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"]
+    nrows, ncols = 1, 3
+    clims = (1.25, 3.25)
+    for i in 1:nrows, j in 1:ncols
+        k = (i - 1) * ncols + j
+        node = node_vec[k]
+        x = scatter_dict[string(node)]
+        rnode = round(node; digits = 3 )
+        title_dict = Dict( 
+            "Δx" => L"$\Delta x_{1} = %$(string( rnode )) \, $m",
+            "D"  => L"$D = %$(string( rnode )) $",
+            "σ"  => L"$\sigma = %$(string( rnode )) \,$N",
+        )
+        ax = Axis(
+            fig[i+1, j][1, 1],
+            title = title_dict[plot_type],
+            xlabel = (i == nrows ? L"$a$ (N/s)" : " "),
+            ylabel = (j == 1 ? L"$F_{\max}$ (N)" : " "),
+            xscale = log10,
+            yaxisposition = (j == 1 ? :left : :right),
+            xticks = (10.0 .^ (-2:3), pws),
+            xticklabelsvisible = (i == nrows ? true : false),
+            yticklabelsvisible = (j == 1 ? true : false),
+            yticksvisible = (j == 2 ? false : true),
+            yminorticks = IntervalsBetween(5),
+            yminorgridvisible = true,
+            xminorgridvisible = true,
+        )
+
+        hm = scatter!(
+            ax,
+            x[2],
+            x[1],
+            color = x[3],
+            colormap = :rainbow1,
+            colorrange = clims,
+            markersize = 5,
+        )
+        ct = contour!(
+            ax,
+            x[2],
+            x[1],
+            x[3],
+            color = :black,
+            levels = [2.25, 2.26],
+            linewidth = 2,
+        )
+    end
+    Colorbar(
+        fig[1, :],
+        colormap = :rainbow1,
+        colorrange = clims,
+        label = L"$x_{1}(t = t_{e})$ (m)",
+        highclip = :red,
+        lowclip = :purple,
+        vertical = false,
+        width = Relative( .5 ),
+    )
+
+    save_fig(prefix, string( plot_type, "_grid4" ), "both", fig)
+end
+
+
 function plot_superposition(Fvec, avec, Δx, p, solve_nlo, solve_nlo_F; Fapprox = 45)
     nrows = 2
     ncols = 3

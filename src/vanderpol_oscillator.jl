@@ -42,7 +42,7 @@ function solve_vdP(u₀, tspan, p)
     end
 end
 
-function solve_forced_vdP(u₀, tspan, p)
+@inline function solve_forced_vdP(u₀, tspan, p)
     ivp = ODEProblem(forced_vdP, u₀, tspan, p)
     if p["fixed_dt"]
         return solve(ivp, dt = p["dt"], adaptive = false)

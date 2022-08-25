@@ -25,10 +25,10 @@ include(srcdir("pwlinear_oscillator.jl"))
 plot_characteristics_bool = false
 plot_bifportrait_bool = false
 plot_superposition_bool = false
-plot_tip_grid_bool = true
+plot_tip_grid_bool = false
 
 # Decide whether animation should be created or not.
-selector = 1                        # Selector for case difference.
+selector = 3                        # Selector for case difference.
 plot_types = ["Δx", "D", "σ"]       # Slicing over IC or damping ratio...
 plot_type = plot_types[selector]    # Choose which of both.
 
@@ -49,7 +49,7 @@ else
 end
 p["t_buffer"] = ( selector == 2 ? 50. : 10. )
 p["F_type"] = "ramp"
-p["Δx"] = 0.1
+p["Δx"] = 0.6
 Δx = p["Δx"]
 println(p["D"])
 
@@ -59,7 +59,8 @@ println(p["D"])
 
 Δx_vec = [0, 0.3, 0.6, 0.9]
 D_vec = [1e-2, 1e-1, 5e-1, 1e0]
-σ_vec = [ 1., 2., 5., 10. ]
+# σ_vec = [ 1., 2., 5., 10. ]
+σ_vec = [ 1., 5., 10. ]
 node_vecs = [ Δx_vec, D_vec, σ_vec ]
 node_vec = node_vecs[selector]
 
@@ -132,20 +133,17 @@ if plot_tip_grid_bool
         get_scatter!(node, plot_type, sss, solve_plo, grid_dict, sol_dict)
     end
     plot_grid4(grid_dict, node_vec, prefix)
+    grid_file = string("grid4_", plot_type, ".jld2")
+    jldsave(datadir(grid_file); grid_dict)
 end
 
-grid_file = string("grid4_", plot_type, ".jld2")
-jldsave(datadir(grid_file); grid_dict)
-
-# for i in 1:10
-#     nprefix = string(prefix, i)
-#     if plot_tip_grid_bool
-#         # Dictionaries to store solutions for tipping grid.
-#         grid_dict = Dict()
-#         sol_dict = Dict()
-#         for node in node_vec
-#             get_scatter!(node, plot_type, sss, solve_plo, grid_dict, sol_dict)
-#         end
-#         plot_grid4(grid_dict, node_vec, nprefix)
-#     end
-# end
+for i in 1:5
+    nprefix = string(prefix, i)
+    # Dictionaries to store solutions for tipping grid.
+    grid_dict = Dict()
+    sol_dict = Dict()
+    for node in node_vec
+        get_scatter!(node, plot_type, sss, solve_plo, grid_dict, sol_dict)
+    end
+    plot_grid3(grid_dict, node_vec, nprefix)
+end

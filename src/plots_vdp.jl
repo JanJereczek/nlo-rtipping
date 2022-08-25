@@ -124,10 +124,10 @@ function plot_superposition(
     nrows = 2
     ncols = 3
 
-    fig = Figure(resolution = (1500, 800), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    fig = Figure(resolution = (1500, 900), font = srcdir("cmunrm.ttf"), fontsize = 28)
     Fmax = Fvec[argmin(abs.(Fvec .- Fapprox))]
-    x₀ = get_x₀(p, Δx)
-    tend = 100
+    x₀ = get_x₀(p, p["Δx"])
+    tend = p["t_buffer"] / 10
     tspan = (0, tend)
     t = range(tspan[1], stop = tspan[2], step = 0.1)
 
@@ -151,60 +151,47 @@ function plot_superposition(
             ax = Axis(
                 fig[i, j],
                 title = string("Experiment ", k),
-                xlabel = (i == nrows ? L"$t$ [s]" : ""),
-                ylabel = (j == 1 ? L"$x_{1}$ [m]" : ""),
+                xlabel = (i == nrows ? L"$t$ (s)" : ""),
+                xticks = 0:25:100,
+                yticks = -1:2,
+                xticklabelsvisible = (i == nrows ? true : false),
+                yticklabelsvisible = (j == 1 ? true : false),
                 xminorticks = IntervalsBetween(5),
                 xminorgridvisible = true,
                 yminorticks = IntervalsBetween(5),
                 yminorgridvisible = true,
             )
-            # ax0 = Axis(
-            #     fig[i, j],
-            #     ylabel = (j == 3 ? L"$F$ [N]" : ""),
-            #     ylabelcolor = :gray,
-            #     yticklabelcolor = :gray,
-            #     yaxisposition = :right,
-            #     yticks = 0:0.5:2,
-            #     xgridvisible = false,
-            #     ygridvisible = false,
-            # )
-            # hidespines!(ax0)
-            # hidexdecorations!(ax0)
-
-            if j < ncols
-                hideydecorations!(ax0)
-            end
-            if j > 1
-                hideydecorations!(ax, grid = false, minorgrid = false)
-            end
-            if i < nrows
-                hidexdecorations!(ax, grid = false, minorgrid = false)
-            end
 
             y = reduce(vcat, transpose.(sol.u))
             yF = reduce(vcat, transpose.(solF.u))
             yy0 = reduce(vcat, transpose.(soly0.u))
             ycheck = yF .+ yy0
-            # l0 = lines!(ax0, t, Fplot, label = L"$F(t)$", color = :gray)
-            l1 = lines!(ax, sol.t, y[:, 1], label = L"$x_{1}(t)$")
-            l2 = lines!(ax, solF.t, yF[:, 1], label = L"$x_{1}^{F}(t)$")
-            l3 = lines!(ax, soly0.t, yy0[:, 1], label = L"$x_{1}^{g}(t)$")
-            l4 = lines!(ax, t, ycheck[:, 1], label = L"$x_{1}^{F}(t) + x_{1}^{g}(t)$")
-            l5 = hlines!(ax, [-2, 2], color = :red, label = L"$x_{T} = 2$ m")
-            lins = [l1, l2, l3, l4, l5]
-            ylims!(ax, (-2.5, 2.5))
+            pow = Fplot .* ( - y[:, 2] )
+            cumpow = cumsum( pow )
+
+            l0 = lines!(ax, t, Fplot, label = L"$F(t)$", color = :gray)
+            l1 = lines!(ax, t, y[:, 1], label = L"$x_{1}(t)$", color = :gray10)
+            l2 = lines!(ax, t, yF[:, 1], label = L"$x_{1}^{F}(t)$")
+            l3 = lines!(ax, t, yy0[:, 1], label = L"$x_{1}^{g}(t)$", color = :green)
+            l4 = lines!(ax, t, ycheck[:, 1], linestyle = :dash, label = L"$x_{1}^{F}(t) + x_{1}^{g}(t)$", color = :orange, linewidth = 2)
+            ylims!(ax, (-1.0, 2.0))
 
             if (i == nrows) & (j == ncols)
                 Legend(
-                    fig[:, 4],
-                    [l1, l2, l3, l4, l5],
+                    fig[3, :],
+                    [l0, l1, l2, l3, l4],
                     [
+                        L"$F(t)$",
                         L"$x_{1}(t)$",
                         L"$x_{1}^{F}(t)$",
                         L"$x_{1}^{g}(t)$",
                         L"$x_{1}^{F}(t) + x_{1}^{g}(t)$",
-                        L"$x_{T} = 2$ m",
+                        # L"$x_{T} = 2$ m",
+                        # "Coaxial energy",
                     ],
+                    orientation = :horizontal,
+                    width = Relative(.8),
+                    colgap = 80,
                 )
             end
         end

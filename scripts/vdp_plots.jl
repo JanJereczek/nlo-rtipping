@@ -7,8 +7,8 @@ include(srcdir("utils.jl"))
 files = [ "vdp_Δx.jld2", "vdp_μ.jld2"]
 gdicts = [ JLD2.load( datadir(files[i]), "grid_dict" ) for i in eachindex(files) ]
 
-Δ_vals = [0, 0.8, 1.6]'
-μ_vals = [1e-2, 1e-1, 1e0]'
+Δ_vals = [0, 0.9, 1.8]'
+μ_vals = [5e-1, 1e0, 5e0]'
 vals = vcat(Δ_vals, μ_vals)
 
 for i in eachindex(gdicts)
@@ -18,9 +18,9 @@ for i in eachindex(gdicts)
     end
 end
 
-tks = ( 10. .^ (-2:3), [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"])
+tks = ( 10. .^ (-3:1), [L"$10^{-3}$", L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$"])
 colorranges = [(.5, 3.), (.5, 3.)]
-sep = [[3], [3]]
+sep = [[6], [6]]
 cmaps = [:rainbow1, :rainbow1]
 
 fig = Figure(resolution = (1500, 1000), font = srcdir("cmunrm.ttf"), fontsize = 28)

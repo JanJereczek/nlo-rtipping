@@ -45,7 +45,7 @@ function get_scatter!(node, plot_type, sss, solve_ode, grid_dict, sol_dict)
             append!(a_scat, a)
 
             local sol = solve_ode(x₀, tspan, p)
-            # sol_dict[string(Fmax, "  ", a)] = 0 # sol
+            # sol_dict[string(Fmax, "  ", a)] = sol
             if method == "last"
                 append!(x_scat, norm(last(sol), 2))
             else
