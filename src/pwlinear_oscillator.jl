@@ -87,6 +87,15 @@ function solve_plo(x₀, tspan, p)
     end
 end
 
+function solve_stochastic_plo(x₀, tspan, p)
+    ivp = SDEProblem(forced_pwlin_oscillator, σ_plo, x₀, tspan, p)
+    return solve(ivp, EM(), dt = p["dt"])
+end
+
+function σ_plo(u, p, t)
+    return [0, p["σ"]/p["m"]]
+end
+
 function solve_plo_F(x₀, tspan, p)
     ivp = ODEProblem(nogravity_forced_pwlin_oscillator, x₀, tspan, p)
     if p["fixed_dt"]
