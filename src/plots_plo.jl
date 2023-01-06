@@ -91,12 +91,12 @@ function show_response(x₀, Fmax, a, t, p, f_vec, ft, axs)
 end
 
 function plot_stochastic_grid(scatter_dict, node_vec, prefix)
-    fig = Figure(resolution = (1500, 1000), font = srcdir("cmunrm.ttf"), fontsize = 28)
+    fig = Figure(resolution = (1500, 700), font = srcdir("cmunrm.ttf"), fontsize = 28)
     pws = [L"$10^{0}$", L"$10^{1}$", L"$10^{2}$"]
-    nrows, ncols = 2, 2
+    nrows, ncols = 1, 3
     for i in 1:nrows, j in 1:ncols
         k = (i - 1) * ncols + j
-        node = node_vec[k]
+        node = node_vec[k+1]
         x = scatter_dict[string(node)]
         ax = Axis(
             fig[i, j][1, 1],
@@ -104,10 +104,10 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
             xlabel = (i == nrows ? L"$a$ (N/s)" : " "),
             ylabel = (j == 1 ? L"$F_{\max}$ (N)" : " "),
             xscale = log10,
-            xaxisposition = (i == 1 ? :top : :bottom),
+            # xaxisposition = (i == 1 ? :top : :bottom),
             yaxisposition = (j == 1 ? :left : :right),
             xticks = (10.0 .^ (0:2), pws),
-            xticklabelsvisible = (i == nrows ? true : false),
+            # xticklabelsvisible = (i == nrows ? true : false),
             yticklabelsvisible = (j == 1 ? true : false),
             yminorticks = IntervalsBetween(5),
             yminorgridvisible = true,
@@ -151,8 +151,8 @@ function plot_stochastic_grid(scatter_dict, node_vec, prefix)
         fig[:, ncols + 1],
         colormap = :rainbow1,
         colorrange = (0, 1),
-        label = L"$x_{1}(t = t_{e})$ (m)",
-        height = Relative( .5 ),
+        label = L"$\hat{P}_\mathrm{tip}$",
+        height = Relative( .8 ),
     )
     save_fig(prefix, "stochastic_grid", "both", fig)
 end
