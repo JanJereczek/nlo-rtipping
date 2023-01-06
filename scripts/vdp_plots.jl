@@ -30,7 +30,7 @@ for i in 1:nrows, j in 1:ncols
     gdict = gdicts[i]
     local node = vals[i, j]
     local titles = [
-        L"$\Delta x = %$(string(node))$",
+        L"$\Delta x_1 = %$(string(node))$",
         L"$\mu = %$(string(node))"]
 
     x = gdict[string(node)]
