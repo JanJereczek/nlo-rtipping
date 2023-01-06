@@ -21,7 +21,7 @@ include(srcdir("vanderpol_oscillator.jl"))
 plot_stream = false
 plot_superposition_bool = false
 compute_grid_bool = true
-plot_tip_grid_bool = true
+plot_tip_grid_bool = false
 plot_types = ["Δx", "μ"]
 selector = 2
 plot_type = plot_types[selector]
@@ -56,8 +56,8 @@ node_vec = node_vecs[selector]
 #################################################
 
 # Sampled values of the tipping grid.
-nF, na = 75, 75                         # Number of points sampled in the ramp-parameter space.
-a_llim, a_ulim = -2, 1                  # Range of sampled slopes.
+nF, na = 40, 40                         # Number of points sampled in the ramp-parameter space.
+a_llim, a_ulim = -3, 1                  # Range of sampled slopes.
 F_llim, F_ulim = -0.5, .2               # linscale with ref = F_crit
 Fvec = round.(p["F_crit"] .+ range(F_llim, stop = F_ulim, length = nF); digits = 5)
 avec = round.(10 .^ (range(a_llim, stop = a_ulim, length = na)); digits = 5)
