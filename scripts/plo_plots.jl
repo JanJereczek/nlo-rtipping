@@ -4,12 +4,12 @@ using DrWatson
 using CairoMakie, JLD2, Colors
 include(srcdir("utils.jl"))
 
-files = [ "grid4_Δx.jld2", "grid4_D.jld2", "stochastic_grid_tbuffer10_dt0.01_nm100.jld2"]
+files = [ "grid4_Δx.jld2", "grid4_D.jld2", "EM_grid_tbuffer10_dt0.01_nm100.jld2"]
 gdicts = [ JLD2.load( datadir(files[i]), "grid_dict" ) for i in eachindex(files) ]
 
 Δ_vals = [0.0, 0.6, 0.9]'
 D_vals = [1e-2, 0.5, 1.0]'
-σ_vals = [1.0, 5.0, 10.0]'
+σ_vals = [.3, 1., 2.]'
 vals = vcat(Δ_vals, D_vals, σ_vals)
 
 for i in eachindex(gdicts)
@@ -21,7 +21,7 @@ end
 
 tks = ( 10. .^ (-2:3), [L"$10^{-2}$", L"$10^{-1}$", L"$10^{0}$", L"$10^{1}$", L"$10^{2}$", L"$10^{3}$"])
 colorranges = [(1., 3.), (1., 3.), (0, 1)]
-sep = [[2.25], [2.25], [0.5]]
+sep = [[2.25], [2.25], [0.49]]
 cmaps = [:rainbow1, :rainbow1, :rainbow]
 
 fig = Figure(resolution = (1500, 1500), font = srcdir("cmunrm.ttf"), fontsize = 28)
@@ -31,7 +31,7 @@ for i in 1:nrows, j in 1:ncols
     gdict = gdicts[i]
     local node = vals[i, j]
     local titles = [
-        L"$\Delta x = %$(string(node)) \, \mathrm{m}$",
+        L"$\Delta x_1 = %$(string(node)) \, \mathrm{m}$",
         L"$D = %$(string(node))",
         L"$\sigma = %$(string(node)) \, \mathrm{N}$" ]
 
@@ -91,8 +91,6 @@ Colorbar(
     colorrange = colorranges[3],
     label = L"$\hat{P}_\mathrm{tip}$ ",
     height = Relative( .8 ),
-    lowclip = cgrad(cmaps[3])[1],
-    highclip = cgrad(cmaps[3])[end],
 )
 
 save_fig(plotsdir("plo/"), "plo_grid", "both", fig)
