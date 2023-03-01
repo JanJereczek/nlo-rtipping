@@ -23,7 +23,7 @@ include(srcdir("pwlinear_oscillator.jl"))
 
 # Define plotting options.
 plot_characteristics_bool = false
-plot_bifportrait_bool = false
+plot_bifportrait_bool = true
 plot_superposition_bool = false
 plot_tip_grid_bool = false
 
@@ -91,8 +91,9 @@ end
 # Get system bifurcation.
 if plot_bifportrait_bool
     Fbif = range(0, stop = 200, length = 2001)
-    x_bassin_bound = get_bassin_boundary(p, 0.0)
-    plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
+    # x_bassin_bound = get_bassin_boundary(p, 0.0)
+    # plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
+    plot_bifurcation_stream(Fbif, prefix, 0.0)
 end
 
 #################################################

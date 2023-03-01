@@ -51,22 +51,54 @@ end
 
 function plot_bifurcation_stream(Fbif, prefix, x_bassin_bound)
     fig = Figure(resolution = (1200, 500), font = srcdir("cmunrm.ttf"), fontsize = 20)
-    ax1 = Axis(fig[1, 1], xlabel = L"$\tilde{F} + mg$ (N)", ylabel = L"$\tilde{x}$ (m)")
-    lines!(ax1, Fbif, branch_xeq1.(Fbif), label = L"$\tilde{x}_{-}$ (m)")
-    lines!(ax1, Fbif, branch_xeq2.(Fbif), label = L"$\tilde{x}_{+}$ (m)")
+    ax1 = Axis(fig[1, 1], xlabel = L"$\tilde{F} + mg$ (N)", ylabel = L"$\tilde{x}$ (m)", title = L"(a) $\,$")
+    lines!(ax1, 0.0:0.1:150, branch_xeq1.(0.0:0.1:150), label = L"$\tilde{x}_{-}$ (m)")
+    lines!(ax1, Fbif, branch_xeq2.(Fbif), label = L"$\tilde{x}_{+}$ (m)", linestyle = :dash)
     axislegend(ax1, merge = true, nbanks = 2, position = :lt)
 
-    ax2 = Axis(fig[1, 2][1, 1], xlabel = L"$x_{1}$ (m)", ylabel = L"$x_{2}$ [m/s]")
+    ax2 = Axis(fig[1, 2], xlabel = L"$x_{1}$ (m)", ylabel = L"$x_{2}$ (m/s)", title = L"(b) $\,$")
+    ax3 = Axis(fig[1, 3], xlabel = L"$x_{1}$ (m)", yticklabelsvisible = false, title = L"(c) $\,$")
 
-    streamplot!(ax2, pwlin_oscillator_stream, -1 .. 3, -8 .. 5, gridsize = (32, 32))
-    lines!(ax2, x_bassin_bound[1, :], x_bassin_bound[2, :], linewidth = 3, color = :red)
-    lines!(
+    crange = (0, 10)
+    cmap = cgrad([:grey20, :grey20]) #:jet
+    sp = streamplot!(
         ax2,
-        [x_bassin_bound[1, 1], x_bassin_bound[1, end]],
-        [x_bassin_bound[2, 1], x_bassin_bound[2, end]],
-        linewidth = 3,
-        color = :red,
+        pwlin_oscillator_stream,
+        -1 .. 3, -5 .. 5,
+        gridsize = (32, 32),
+        colormap = cmap,
+        colorrange = crange,
     )
+    k1_tmp = copy(p["k₁"])
+    p["k₁"] = 0.0
+    sp = streamplot!(
+        ax3,
+        pwlin_oscillator_stream,
+        -1 .. 3, -5 .. 5,
+        gridsize = (32, 32),
+        colormap = cmap,
+        colorrange = crange,
+    )
+    p["k₁"] = k1_tmp
+
+    # Colorbar(
+    #     fig[2,2:3],
+    #     colormap = cmap,
+    #     colorrange = crange,
+    #     width = Relative(0.5),
+    #     label = L"Normalised 1-norm of $\dot{x}$ (1)",
+    #     vertical = false,
+    # )
+
+    # streamplot!(ax2, pwlin_oscillator_stream, -1 .. 3, -8 .. 5, gridsize = (32, 32))
+    # lines!(ax2, x_bassin_bound[1, :], x_bassin_bound[2, :], linewidth = 3, color = :red)
+    # lines!(
+    #     ax2,
+    #     [x_bassin_bound[1, 1], x_bassin_bound[1, end]],
+    #     [x_bassin_bound[2, 1], x_bassin_bound[2, end]],
+    #     linewidth = 3,
+    #     color = :red,
+    # )
     save_fig(prefix, "bif_phaseportrait", "both", fig)
 end
 
