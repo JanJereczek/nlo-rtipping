@@ -1,4 +1,4 @@
-# Case Study: R-Tipping of Nonlinear Oscillator 
+# Rate-induced tipping of nonlinear oscillators
 
 ## Getting started
 
@@ -23,7 +23,8 @@ To (locally) reproduce this project, do the following:
 This will install all necessary packages for you to be able to run the scripts and
 everything should work out of the box, including correctly finding local paths.
 
-## Read the Docs!
+## Published paper
 
-The motivation, experimental setup, results and interpretation is documented in `docs/NLO_Rtipping.pdf`.
-The derivation of the tipping measures is described in `docs/main.pdf`. Notice that this is still work under progress. 
+This repository contains the code of [Swierczek-Jereczek et al. (2023), *Time-scale synchronisation of oscillatory responses can lead to non-monotonous R-tipping*, Scientific reports.](https://www.nature.com/articles/s41598-023-28771-1)
+
+The paper consists of a case study showing that rate-induced tipping might not be monotonous with respect to the forcing rate, a somewhat counter-intuitive result. It furthermore shows that for oscillatory systems, this might happen due to the synchronisation of oscillatory response.
